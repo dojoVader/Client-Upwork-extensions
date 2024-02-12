@@ -1,0 +1,48 @@
+{
+  "name": "Netflix",
+  "version": "1.0.0",
+  "description": "Netflix Contentscript",
+  "manifest_version": 3,
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Netflix",
+    "default_icon": "icon.png"
+  },
+  "permissions": [
+    "storage",
+    "notifications",
+    "activeTab",
+    "tabs"
+  ],
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentScript.js"
+      ],
+      "css": ["contentScript.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "asset.png", "icon.png","icons/*.svg","icons/*.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

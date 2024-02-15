@@ -1,34 +1,87 @@
-import React from "react";
-import {createRoot} from "react-dom/client";
-import {SidebarNetflix} from "../component/Sidebar";
-import {dom, q} from "../utils/helpers";
+import {q} from "../utils/helpers";
+import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
+import {QueueMap} from "../skool/Queue";
+import {Scheduler} from "../skool/Scheduler";
 
-console.log("Fired in Netflix.....")
 
-const NETFLIX_SELECTOR=".watch-video";
+console.log("Now fired in the School Extension....");
 
-// Find watch video set as relative, set parent to flex and render sidebar after video
+// Initiate the SkoolAutomator to find the elements in the page
+const automator = new SkoolAutomation();
 
-function renderNetflix(){
-    const [videoElement] = q(NETFLIX_SELECTOR,false);
-    if(videoElement){
-        // Get the Parent Node
-        const parentNode = videoElement.parentNode as HTMLElement;
-        parentNode.style.display = 'flex';
 
-        // Get the video element and set to relative
+setTimeout(() => {
 
-        (videoElement as HTMLElement).style.position = 'relative';
-        (videoElement as HTMLElement).style.height = '100vh';
-        (videoElement as HTMLElement).style.width = '80%';
 
-        const newNode = dom('div',{'class':'sidebar-ui'});
-        const root = createRoot(newNode);
-        root.render(<SidebarNetflix/>)
+    // Create the Queue to Hold the tasks to be processed
+    const queueManager = new QueueMap<SkoolMemberEntity<HTMLElement>>();
+    //Find the members in the page and the Pagination Information
 
-        // Place it side by side with netflix
-        videoElement.after(newNode)
+
+    automator.debug();
+
+    const clear = () => {
+        automator.clear();
+        queueManager.clear();
     }
-}
 
-setTimeout(() =>  renderNetflix(),5000)
+
+    const scheduler = new Scheduler();
+    scheduler.onAnimationEnd(() => {
+        //Get the members
+        clear();
+        automator.findPaginationInfo();
+        automator.findActiveButton();
+        automator.findMembers();
+        const membersFound = automator.getMembers();
+        Array.from(membersFound).forEach(item => {
+
+            const memberData = automator.extractMapMemberData(item);
+            //add to the Queue
+            queueManager.enqueue(memberData.userId, memberData);
+            //
+
+        })
+
+        const iterator = queueManager.getList().entries();
+
+        // We need to trigger the Queue as long as it has items
+        const peekAtQueue = () => {
+            // Do we have data in the queue
+            const iteratorValue = iterator.next();
+            if (!iteratorValue.done) {
+                const [_, item] = iteratorValue.value;
+                const [key, value] = item;
+
+                automator.process(value).then(() => {
+                    console.log('Clicked finish')
+                    setTimeout(() => peekAtQueue(), 2000);
+                },() => {
+                    setTimeout(() => peekAtQueue(), 2000);
+                })
+
+            } else {
+                // Click the next page
+                // Check if it has a next page
+                automator.findMembers();
+                automator.findPaginationInfo();
+                if (automator.hasNextPage()) {
+                    automator.callNextButton();
+                    setTimeout(() => {
+                        clear();
+                        scheduler.start();
+                    }, 3000)
+
+                } else {
+                    //We might
+                    alert("Finished")
+                }
+
+            }
+        }
+        peekAtQueue();
+
+    })
+    scheduler.start();
+
+}, 3000)

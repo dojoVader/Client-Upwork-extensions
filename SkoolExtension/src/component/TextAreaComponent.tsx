@@ -7,9 +7,7 @@ function TextAreaComponent() {
         className="skool__input"
         name="custom-message"
         id="custom-message"
-      >
-        Custom Message...
-      </textarea>
+      ></textarea>
     </div>
   );
 }

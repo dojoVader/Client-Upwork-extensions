@@ -3,6 +3,8 @@ import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
 import {QueueMap} from "../skool/Queue";
 import {Scheduler} from "../skool/Scheduler";
 
+declare var window;
+
 
 console.log("Now fired in the School Extension....");
 
@@ -10,7 +12,9 @@ console.log("Now fired in the School Extension....");
 const automator = new SkoolAutomation();
 
 
-setTimeout(() => {
+setTimeout(async() => {
+
+    await chrome.runtime.sendMessage({message: "inject-script"});
 
 
     // Create the Queue to Hold the tasks to be processed
@@ -82,6 +86,15 @@ setTimeout(() => {
         peekAtQueue();
 
     })
-    scheduler.start();
+    //scheduler.start();
+
+
+
+
+
 
 }, 3000)
+
+
+
+

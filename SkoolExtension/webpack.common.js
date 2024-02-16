@@ -8,6 +8,7 @@ module.exports = {
     config: path.resolve("src/constant/config.ts"),
     background: path.resolve("src/background/background.ts"),
     contentScript: path.resolve("src/contentScript/contentScript.tsx"),
+    interceptor: path.resolve("src/contentScript/interceptor.ts"),
     popup: path.resolve("src/popup/popup.tsx"),
    
   },

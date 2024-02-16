@@ -1,5 +1,4 @@
-import {getReactProps, q, sendMessage} from "../utils/helpers";
-import {storagePageSettings} from "./SkoolStorage";
+import {q, sendMessage} from "../utils/helpers";
 
 const TOTAL_PAGES_DOM_ELEMENT = "div.styled__DesktopPaginationMeta-sc-4zz1jl-2 ";
 const MEMBERSHIP_DOM = "div.styled__MembersListWrapper-sc-ne2uns-0";
@@ -74,9 +73,9 @@ export class SkoolAutomation{
         const chatButton = this.findChatButton(item.data);
         if(!chatButton) return new Promise((resolve,reject) => reject(false));
         return new Promise(async(resolve,reject) => {
-            await this.clickMemberChat(chatButton);
-            await this.sendMessageToMember(item.data,"Hello, how are you ?  ");
-            await this.clickCloseButton();
+           await this.clickMemberChat(chatButton);
+           await this.sendMessageToMember(item.data,"Hello, how are you ?  ");
+           await this.clickCloseButton();
             resolve(true);
             this.addProcessedMember(item.userId,item.data);
         });
@@ -146,11 +145,8 @@ export class SkoolAutomation{
     }
 
     getChannelName(){
-        const channelName = "cmsg";
-        const data = localStorage.getItem(channelName);
-        const parsed = JSON.parse(data);
-        const [keys] = Object.keys(parsed.value);
-        return keys;
+        const channelName = "currentUser";
+        return localStorage.getItem(channelName);
     }
     clickCloseButton(){
         return new Promise(async(resolve,reject)=> {

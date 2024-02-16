@@ -38,10 +38,13 @@
       "run_at": "document_idle"
     }
   ],
+  "host_permissions": [
+    "https://www.skool.com/*"
+  ],
   "web_accessible_resources": [
     {
       "resources": [
-        "asset.png", "icon.png","icons/*.svg","icons/*.png"
+        "asset.png", "icon.png","icons/*.svg","icons/*.png" , "interceptor.js"
       ],
       "matches": [
         "<all_urls>"

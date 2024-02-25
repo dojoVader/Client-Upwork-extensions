@@ -1,4 +1,5 @@
 import {q, sendMessage} from "../utils/helpers";
+import {SkoolStorage} from "./SkoolStorage";
 
 const TOTAL_PAGES_DOM_ELEMENT = "div.styled__DesktopPaginationMeta-sc-4zz1jl-2 ";
 const MEMBERSHIP_DOM = "div.styled__MembersListWrapper-sc-ne2uns-0";
@@ -25,11 +26,24 @@ export class SkoolAutomation{
     private currentPage = 0;
     private itemsPerPage = 0;
     private currentMembersToSpam: HTMLElement[] = [];
-    private currentMembersProcessed: Map<string,HTMLElement> = new Map();
+    private currentMembersProcessed = {
+        records: []
+    }
     private highestInterval = 10000;
+    private message: string = "";
 
 
     constructor() {
+        // Get the message from the chrome SkoolStorage
+
+        const skoolStorage = new SkoolStorage();
+        skoolStorage.getPopupData().then((data) => {
+            this.setMessage(data.message);
+        });
+
+    }
+    setMessage(message: string){
+        this.message = message;
     }
 
     setTotalPages(totalPages: number){
@@ -46,8 +60,11 @@ export class SkoolAutomation{
     findMembers(){
         const domNodes = q(MEMBERSHIP_DOM,false);
         // Assign the childNodes to the property
-        this.currentMembersToSpam = (domNodes.childNodes);
-        this.setItemsPerPage(this.currentMembersToSpam.length);
+        if(domNodes){
+            this.currentMembersToSpam = (domNodes.childNodes);
+            this.setItemsPerPage(this.currentMembersToSpam.length);
+        }
+
     }
 
     getMembers(){
@@ -65,8 +82,14 @@ export class SkoolAutomation{
         return memberData
     }
 
-    addProcessedMember(token:string, member: HTMLElement){
-        this.currentMembersProcessed.set(token,member);
+    addProcessedMember(token:string, member: SkoolMemberEntity<HTMLElement>){
+        console.log(member)
+        this.currentMembersProcessed.records.push({
+            id:member.userId,
+            name: member.displayName
+            })
+
+
     }
 
     async process(item: SkoolMemberEntity<HTMLElement>){
@@ -74,18 +97,16 @@ export class SkoolAutomation{
         if(!chatButton) return new Promise((resolve,reject) => reject(false));
         return new Promise(async(resolve,reject) => {
            await this.clickMemberChat(chatButton);
-           await this.sendMessageToMember(item.data,"Hello, how are you ?  ");
+           await this.sendMessageToMember(item.data,this.message);
            await this.clickCloseButton();
             resolve(true);
-            this.addProcessedMember(item.userId,item.data);
+            this.addProcessedMember(item.userId,item);
         });
     }
     debug(){
         console.log(this.currentMembersToSpam.length);
         // print all the pagination details
-        console.log(this.currentPage);
-        console.log(this.itemsPerPage);
-        console.log(this.totalPages);
+
 
     }
 
@@ -98,6 +119,11 @@ export class SkoolAutomation{
         return null;
 
 
+    }
+
+    async save(){
+        const storage = new SkoolStorage();
+        await storage.saveProcessedRecords(this.currentMembersProcessed.records);
     }
 
 
@@ -216,7 +242,7 @@ export class SkoolAutomation{
     }
     clear(){
         this.currentMembersToSpam = [];
-        this.currentMembersProcessed.clear();
+        this.currentMembersProcessed.records = [];
     }
 
     findActiveButton(){

@@ -29,7 +29,8 @@
       "matches": [
         "https://www.skool.com/*/*/members",
         "https://www.skool.com/*/*/search*",
-        "https://www.skool.com/*/-/search?q=*"
+        "https://www.skool.com/*/-/search?q=*",
+        "https://www.skool.com/*"
       ],
       "js": [
         "contentScript.js"
@@ -44,7 +45,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "asset.png", "icon.png","icons/*.svg","icons/*.png" , "interceptor.js"
+        "asset.png", "sun.png","icon.png","icons/*.svg","icons/*.png" , "interceptor.js"
       ],
       "matches": [
         "<all_urls>"

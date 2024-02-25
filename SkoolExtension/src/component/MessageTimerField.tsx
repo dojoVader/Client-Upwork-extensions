@@ -4,16 +4,7 @@ import "boxicons";
 function MessageTimerField() {
   return (
     <div className="message__field">
-      <div className="message__per">
-        <input
-          className="message_input"
-          type="text"
-          name="Message-input"
-          id="message-input"
-          placeholder="5"
-        />
-        <span className="message-label">Messages per</span>
-      </div>
+
 
       <div className="timer-wrapper">
         <div className="timer__svg">

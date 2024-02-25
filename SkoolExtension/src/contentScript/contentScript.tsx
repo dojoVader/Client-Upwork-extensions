@@ -1,7 +1,10 @@
 import {q} from "../utils/helpers";
+import * as React from "react";
+import {createRoot} from "react-dom/client";
 import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
 import {QueueMap} from "../skool/Queue";
 import {Scheduler} from "../skool/Scheduler";
+import {ClockCounter} from "../component/ClockCounter";
 
 declare var window;
 
@@ -31,6 +34,25 @@ setTimeout(async() => {
 
 
     const scheduler = new Scheduler();
+
+    // Set the duration when it changes from chrome.storage
+
+    chrome.storage.local.onChanged.addListener((changes) => {
+
+        if(changes?.popupData?.newValue) {
+            const data = changes.popupData.newValue;
+            scheduler.setDuration(data.hourToWait);
+            scheduler.setMaximumInterval(data.maximumInterval);
+        }
+    });
+
+    const calculateInterval= () : number => {
+        const interval = Math.floor(Math.random() * scheduler.getMaximumInterval());
+        return interval * 1000;
+    }
+
+
+
     scheduler.onAnimationEnd(() => {
         //Get the members
         clear();
@@ -38,6 +60,11 @@ setTimeout(async() => {
         automator.findActiveButton();
         automator.findMembers();
         const membersFound = automator.getMembers();
+        // Check that we have members
+        if (membersFound.length === 0) {
+            alert("No members found,Please confirm that you are on the member/search page and try again.");
+            return;
+        }
         Array.from(membersFound).forEach(item => {
 
             const memberData = automator.extractMapMemberData(item);
@@ -59,9 +86,9 @@ setTimeout(async() => {
 
                 automator.process(value).then(() => {
                     console.log('Clicked finish')
-                    setTimeout(() => peekAtQueue(), 2000);
+                    setTimeout(() => peekAtQueue(), calculateInterval());
                 },() => {
-                    setTimeout(() => peekAtQueue(), 2000);
+                    setTimeout(() => peekAtQueue(), calculateInterval());
                 })
 
             } else {
@@ -79,6 +106,7 @@ setTimeout(async() => {
                 } else {
                     //We might
                     alert("Finished")
+                    automator.save();
                 }
 
             }
@@ -86,14 +114,38 @@ setTimeout(async() => {
         peekAtQueue();
 
     })
-    //scheduler.start();
 
+    // listen to contentScript messages
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        console.log(request);
+        if (request.message === "startClock") {
+            scheduler.start();
+            // set to local storage that clock has started
+            localStorage.setItem('clockStopped', 'false');
+            sendResponse({message: "Clock started"});
+        } else if (request.message === "stopClock") {
+            scheduler.stop();
+            // set to local storage that clock has stopped
+            localStorage.setItem('clockStopped', 'true');
+            sendResponse({message: "Clock stopped"});
+        }
+        return true;
+    });
 
+ // append skool counter to the dom
+
+ const skoolcounter = document.createElement('div');
+ skoolcounter.id = 'skool-counter';
+ const root = createRoot(skoolcounter);
+ root.render(<ClockCounter />);
+ document.body.appendChild(skoolcounter);
 
 
 
 
 }, 3000)
+
+
 
 
 

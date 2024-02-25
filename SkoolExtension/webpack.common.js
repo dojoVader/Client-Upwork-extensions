@@ -10,6 +10,7 @@ module.exports = {
     contentScript: path.resolve("src/contentScript/contentScript.tsx"),
     interceptor: path.resolve("src/contentScript/interceptor.ts"),
     popup: path.resolve("src/popup/popup.tsx"),
+    options: path.resolve("src/option/option.tsx")
    
   },
   module: {

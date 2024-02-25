@@ -1,0 +1,28 @@
+.header__wrapper {
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.header__logo {
+  color: orange;
+  font-size: 18px;
+}
+
+.svg__icon {
+  padding: 5px;
+  background: rgba(85, 92, 193, 0.22);
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+}

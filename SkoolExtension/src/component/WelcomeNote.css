@@ -1,0 +1,16 @@
+.welcome__title {
+  text-align: center;
+  color: #626162;
+  margin-bottom: 10px;
+}
+
+.welcome__note {
+  text-align: center;
+  font-size: 12px;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #626162;
+}

@@ -1,0 +1,27 @@
+.welcome__body__wrap {
+  padding: 15px 25px;
+  background-color: #f7f6f3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-direction: column;
+}
+
+.primary__button {
+  background: #363eab;
+  box-shadow: 0px 4px 4.1px rgba(10, 16, 37, 0.09),
+    inset 0px -4px 14.9px -2px #555cc1;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 10px;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+/* width: 270px;
+height: 32px; */

@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import {SkoolLogs} from "../component/SkoolLogs";
+import {SkoolLogs} from "../component/ui/SkoolLogs";
 import "./option.css"
 
 

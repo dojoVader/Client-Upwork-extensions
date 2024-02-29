@@ -8,8 +8,7 @@ import Slider from "@mui/material-next/Slider";
 
 export type PopupData = {
  message:string;
- hourToWait: number;
- maximumInterval: number;
+ messagePerHour: number;
 
 }
 
@@ -25,8 +24,7 @@ export const PopupUI = () => {
             const data = result.popupData as PopupData;
             console.log(data);
             setTextarea(data.message);
-            setHour(data.hourToWait);
-            setSeconds(data.maximumInterval);
+
         });
     }, [])
 

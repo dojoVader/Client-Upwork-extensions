@@ -1,4 +1,4 @@
-import {useCounterStore} from "../component/SkoolCounter";
+import {useCounterStore} from "../zustand/SkoolCounter";
 import {SkoolStorage} from "./SkoolStorage";
 
 
@@ -10,17 +10,19 @@ export class Scheduler {
 
     private duration: number = 10;
 
-    private maximumInterval: number = 0
+    private maximumInterval: number = 10;
 
     private callback: () => void = null;
 
     constructor() {
+
         // Get the PopUI data and set the duration from chrome storage
         const skoolStorage = new SkoolStorage();
         skoolStorage.getPopupData().then((data) => {
             if (data) {
-                this.setDuration(data.hourToWait );
-                this.setMaximumInterval(data.maximumInterval);
+                console.log(data.messagePerHour);
+                this.setDuration(data.messagePerHour );
+
             }
         });
     }
@@ -55,9 +57,9 @@ export class Scheduler {
         // only run when localstorage clock is active
 
         if(localStorage.getItem('clockStopped') === 'false') {
-
+            const duration = this.duration;
             useCounterStore.getState().actions.setClock({
-                time: this.duration - (timestamp - this.startTiming) / 1000,
+                time: duration - (timestamp - this.startTiming) / 1000,
                 counting: true
             });
             // If the initial timing is not set let's set the timing
@@ -66,7 +68,7 @@ export class Scheduler {
             }
 
             const timeElasped = (timestamp - this.startTiming) / 1000;
-            if (timeElasped > this.duration) {
+            if (timeElasped > duration) {
                 console.log("10 Seconds Elapsed, time to fire callback....");
                 this.startTiming = 0; // reset
                 this.callback();

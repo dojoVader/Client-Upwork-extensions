@@ -1,0 +1,47 @@
+@mixin primaryButton {
+  button{
+    margin-top: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #363EAB;
+    &:active{
+      background: #363EAB;
+    }
+    &:hover{
+      background: #282F97;
+    }
+    &.inactive{
+      background: rgba(54,62, 171, 0.3);
+
+    }
+  }
+  button.red-scheme{
+    margin-top: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #D2513E;
+    &:active{
+      background: #D2513E;
+    }
+    &:hover{
+      background: #B8412F;
+    }
+    &.inactive{
+      background: rgba(20,81, 62, 0.3);
+
+    }
+  }
+}
+
+div.button-cage{
+  border-top: 1px solid #c3bbbb;
+  display: flex;
+  justify-items: center;
+  padding: 17px 25px 14px 20px;
+  @include primaryButton
+
+}
+
+@include primaryButton

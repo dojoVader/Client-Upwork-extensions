@@ -1,0 +1,50 @@
+@import "shared";
+
+
+.progress {
+  stroke-width: 23;
+  stroke: #555CC1;
+  stroke-linecap: round;
+  fill: none;
+  transform: rotate(270deg);
+  transform-origin: center;
+  stroke-dashoffset: 10;
+  stroke-dasharray: 630;
+}
+.progress-text{
+  font-size: 3rem;
+  font-weight: 700;
+  fill: #555CC1;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  transform: translateY(-35.75px);
+}
+.progress-small-text{
+    font-size: 1.5rem;
+    fill: #999899;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    transform: translateY(5.75px);
+}
+div.warning-label {
+  font-family: "Inter", sans-serif;
+  background-color: #f5f9ff;
+  padding: 5% 2%;
+  width: 270px;
+  border-radius: 7.1764707565px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 9.5686273575px;
+  border: 1px solid #9DC0EE;
+  position: relative;
+  box-shadow: 0px 1px 4px 1px #d4d4d996;
+  margin: -30px auto 24.69px;
+
+  div.inner-text{
+    display: flex;
+    flex-direction: column;
+    row-gap: 3px;
+  }
+}

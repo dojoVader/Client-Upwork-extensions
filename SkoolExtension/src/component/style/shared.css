@@ -1,0 +1,14 @@
+div.button-cage {
+  border-top: 1px solid #c3bbbb;
+  display: flex;
+  justify-items: center;
+  padding: 17px 25px 14px 20px;
+}
+div.button-cage button {
+  margin-top: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*# sourceMappingURL=shared.css.map */

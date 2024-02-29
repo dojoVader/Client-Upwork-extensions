@@ -11,6 +11,7 @@ div.sidebar-ui {
 
 .container__wrapper {
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-  width: 311px;
+  width: 331px;
   height: auto;
+  padding-bottom: 4%;
 }

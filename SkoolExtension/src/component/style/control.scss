@@ -1,0 +1,93 @@
+@import "shared";
+
+div.control_body{
+  font-family: "Inter", sans-serif;
+  padding:20px 21px;
+
+  div.control-message{
+
+    height: 172px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.0500000007);
+    box-shadow: 0 0px 2px 0 #2f348c17;
+    padding: 5% 4%;
+    div.inner-content{
+      height: 124px;
+      width: 100%;
+      border-radius: 8px;
+      textarea{
+        margin-top: 9px;
+        background-color: #fbfbfb;
+        border: 1px solid #f7f3f3;
+        height: 100%;
+        width: 100%;
+        resize: none;
+        border-radius: 8px;
+        font-size: 10px;
+        color:#999899;
+        font-family: "Inter", sans-serif;
+        padding: 10px 9px;
+      }
+    }
+    div.control-header-message{
+      justify-content: flex-start;
+      align-items: baseline;
+      span:first-child{
+        margin-right: 3px;
+      }
+      span:last-child{
+        font-weight: 900;
+        color: #555CC1;
+        font-size: 10px;
+      }
+
+
+    }
+
+  }
+  div.control-settings{
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 10px;
+
+    div.timer{
+      display: flex;
+      column-gap: 6px;
+      align-items: baseline;
+      font-size: 10px;
+      color: #555CC1;
+      font-weight: 900;
+    }
+    div.dropdown{
+      select{
+        border:1px solid #FBFBFB;
+        font-size: 10px;
+        font-weight: 900;
+        border-radius: 4.5px;
+        padding: 1% 1%;
+        color:#383838;
+      }
+    }
+  }
+  div.control-option{
+    margin-top: 7px;
+    div.option-item{
+      display: flex;
+      align-items: end;
+      width: 270px;
+      padding: 10px;
+      background: #FBFBFB;
+      font-size: 10px;
+      column-gap: 4px;
+      border-radius: 8px;
+      color: #999899;
+      font-family: "Inter", sans-serif;
+      font-weight: 300;
+      margin-bottom: 3px;
+    }
+  }
+}
+
+
+

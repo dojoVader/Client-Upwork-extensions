@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
-import {SkoolStorage} from "../skool/SkoolStorage";
-import {SkoolMemberEntity} from "../skool/SkoolAutomation";
+import {SkoolStorage} from "../../skool/SkoolStorage";
+import {SkoolMemberEntity} from "../../skool/SkoolAutomation";
 import {Button} from "@mui/material-next";
 
 const columns: GridColDef[] = [

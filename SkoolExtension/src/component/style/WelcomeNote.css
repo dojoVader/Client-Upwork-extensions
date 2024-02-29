@@ -1,16 +1,17 @@
 .welcome__title {
   text-align: center;
-  color: #626162;
+  color: #383838;
   margin-bottom: 10px;
+  font-size: 20px;
+  margin-top: 10px;
 }
 
 .welcome__note {
   text-align: center;
-  font-size: 12px;
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   font-style: normal;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.2;
   color: #626162;
 }

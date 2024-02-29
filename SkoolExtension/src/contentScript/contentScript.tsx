@@ -4,7 +4,7 @@ import {createRoot} from "react-dom/client";
 import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
 import {QueueMap} from "../skool/Queue";
 import {Scheduler} from "../skool/Scheduler";
-import {ClockCounter} from "../component/ClockCounter";
+import {ClockCounter} from "../component/shared/ClockCounter";
 
 declare var window;
 
@@ -41,8 +41,8 @@ setTimeout(async() => {
 
         if(changes?.popupData?.newValue) {
             const data = changes.popupData.newValue;
-            scheduler.setDuration(data.hourToWait);
-            scheduler.setMaximumInterval(data.maximumInterval);
+            scheduler.setDuration(data.messagePerHour);
+
         }
     });
 
@@ -59,6 +59,7 @@ setTimeout(async() => {
         automator.findPaginationInfo();
         automator.findActiveButton();
         automator.findMembers();
+        localStorage.getItem('currentQueueMembers') === null ? automator.persistTotalMembers() : null ;
         const membersFound = automator.getMembers();
         // Check that we have members
         if (membersFound.length === 0) {
@@ -118,12 +119,12 @@ setTimeout(async() => {
     // listen to contentScript messages
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(request);
-        if (request.message === "startClock") {
+        if (request.type === "startClock") {
             scheduler.start();
             // set to local storage that clock has started
             localStorage.setItem('clockStopped', 'false');
             sendResponse({message: "Clock started"});
-        } else if (request.message === "stopClock") {
+        } else if (request.type === "stopClock") {
             scheduler.stop();
             // set to local storage that clock has stopped
             localStorage.setItem('clockStopped', 'true');

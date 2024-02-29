@@ -1,6 +1,6 @@
 .welcome__body__wrap {
   padding: 15px 25px;
-  background-color: #f7f6f3;
+  background: linear-gradient(#FCFAE3, #F4E5F4);
 
   display: flex;
   align-items: center;
@@ -11,11 +11,12 @@
 
 .primary__button {
   background: #363eab;
+  font-weight: bold;
   box-shadow: 0px 4px 4.1px rgba(10, 16, 37, 0.09),
     inset 0px -4px 14.9px -2px #555cc1;
   border-radius: 10px;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 55px;
   color: #fff;
   padding: 10px 20px;
   font-size: 10px;

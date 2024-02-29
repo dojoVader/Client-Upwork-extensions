@@ -1,6 +1,6 @@
 // create zustand store counter
 import {create} from 'zustand';
-import "./clock.css";
+import "../component/style/clock.css";
 
 interface ClockState {
     data: { time: number,counting: boolean};

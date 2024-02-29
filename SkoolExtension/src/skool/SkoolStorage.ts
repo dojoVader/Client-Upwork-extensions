@@ -1,5 +1,10 @@
 import {SkoolMemberEntity} from "./SkoolAutomation";
-import {PopupData} from "../component/PopupUI";
+
+export type PopupData = {
+    message:string;
+    messagePerHour: number;
+
+}
 
 
 

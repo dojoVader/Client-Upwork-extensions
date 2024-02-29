@@ -18,6 +18,11 @@ export interface SkoolMemberEntity<T> {
     data: T
 
 }
+export interface StorageMemberChecker {
+    id:string;
+    name: string;
+    marked: boolean;
+}
 
 export class SkoolAutomation{
 
@@ -29,8 +34,10 @@ export class SkoolAutomation{
     private currentMembersProcessed = {
         records: []
     }
-    private highestInterval = 10000;
+    private maximumMessagesPerHour = 0;
+    private currentMessageCount = 0;
     private message: string = "";
+    private storageMemoryChecker: StorageMemberChecker[] = [];
 
 
     constructor() {
@@ -39,11 +46,27 @@ export class SkoolAutomation{
         const skoolStorage = new SkoolStorage();
         skoolStorage.getPopupData().then((data) => {
             this.setMessage(data.message);
+            this.setMaximumMessagesPerHour(data.messagePerHour);
         });
 
+        // create storage for current members
+        localStorage.setItem("currentMembers",JSON.stringify([]));
+
+    }
+
+    setMaximumMessagesPerHour(maximumMessagesPerHour: number){
+        this.maximumMessagesPerHour = maximumMessagesPerHour;
     }
     setMessage(message: string){
         this.message = message;
+    }
+
+    getCurrentMessageCount(){
+        return this.currentMessageCount;
+    }
+
+    getMaximumMessagesPerHour(){
+        return this.maximumMessagesPerHour;
     }
 
     setTotalPages(totalPages: number){
@@ -64,6 +87,7 @@ export class SkoolAutomation{
             this.currentMembersToSpam = (domNodes.childNodes);
             this.setItemsPerPage(this.currentMembersToSpam.length);
         }
+
 
     }
 
@@ -97,10 +121,13 @@ export class SkoolAutomation{
         if(!chatButton) return new Promise((resolve,reject) => reject(false));
         return new Promise(async(resolve,reject) => {
            await this.clickMemberChat(chatButton);
-           await this.sendMessageToMember(item.data,this.message);
+           // await this.sendMessageToMember(item.data,this.message);
            await this.clickCloseButton();
             resolve(true);
             this.addProcessedMember(item.userId,item);
+            this.maximumMessagesPerHour++;
+            this.persistToLocalStorage(item);
+
         });
     }
     debug(){
@@ -108,6 +135,36 @@ export class SkoolAutomation{
         // print all the pagination details
 
 
+    }
+
+    persistToLocalStorage(item: SkoolMemberEntity<HTMLElement>){
+        //Get the currentMember and add to it
+        const currentMembers = localStorage.getItem("currentMembers");
+        const memberQueue:StorageMemberChecker[]  = JSON.parse(currentMembers);
+        memberQueue.push({
+           id: item.userId.toString(),
+           name: item.displayName,
+           marked: true
+        });
+        localStorage.setItem("currentMembers",JSON.stringify(memberQueue));
+
+
+    }
+
+    persistTotalMembers(){
+        if(this.getMembers().length){
+            const members = this.getMembers();
+            const memberQueue:StorageMemberChecker[] = [];
+            members.forEach((item) => {
+                const member = this.extractMapMemberData(item);
+                memberQueue.push({
+                    id: member.userId.toString(),
+                    name: member.displayName,
+                    marked: false
+                });
+            });
+            localStorage.setItem("currentQueueMembers",JSON.stringify(memberQueue));
+        }
     }
 
     findChatButton(node: HTMLElement): HTMLElement{

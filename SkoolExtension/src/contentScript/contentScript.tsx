@@ -8,6 +8,8 @@ import {ClockCounter} from "../component/shared/ClockCounter";
 
 declare var window;
 
+localStorage.setItem('currentQueueMembers', JSON.stringify([]));
+
 
 console.log("Now fired in the School Extension....");
 
@@ -15,7 +17,7 @@ console.log("Now fired in the School Extension....");
 const automator = new SkoolAutomation();
 
 
-setTimeout(async() => {
+setTimeout(async () => {
 
     await chrome.runtime.sendMessage({message: "inject-script"});
 
@@ -35,23 +37,25 @@ setTimeout(async() => {
 
     const scheduler = new Scheduler();
 
-    // Set the duration when it changes from chrome.storage
+    // // Set the duration when it changes from chrome.storage
+    //
+    // chrome.storage.local.onChanged.addListener((changes) => {
+    //
+    //     if(changes?.popupData?.newValue) {
+    //         const data = changes.popupData.newValue;
+    //         scheduler.setDuration(data.messagePerHour);
+    //
+    //     }
+    // });
 
-    chrome.storage.local.onChanged.addListener((changes) => {
-
-        if(changes?.popupData?.newValue) {
-            const data = changes.popupData.newValue;
-            scheduler.setDuration(data.messagePerHour);
-
-        }
-    });
-
-    const calculateInterval= () : number => {
+    const calculateInterval = (): number => {
         const interval = Math.floor(Math.random() * scheduler.getMaximumInterval());
         return interval * 1000;
     }
 
-
+    const getCurrentQueueMembers = (): [any] => {
+        return JSON.parse(localStorage.getItem('currentQueueMembers'));
+    }
 
     scheduler.onAnimationEnd(() => {
         //Get the members
@@ -59,7 +63,7 @@ setTimeout(async() => {
         automator.findPaginationInfo();
         automator.findActiveButton();
         automator.findMembers();
-        localStorage.getItem('currentQueueMembers') === null ? automator.persistTotalMembers() : null ;
+        automator.persistTotalMembers();
         const membersFound = automator.getMembers();
         // Check that we have members
         if (membersFound.length === 0) {
@@ -86,29 +90,38 @@ setTimeout(async() => {
                 const [key, value] = item;
 
                 automator.process(value).then(() => {
-                    console.log('Clicked finish')
                     setTimeout(() => peekAtQueue(), calculateInterval());
-                },() => {
+                }, () => {
                     setTimeout(() => peekAtQueue(), calculateInterval());
                 })
 
             } else {
-                // Click the next page
-                // Check if it has a next page
-                automator.findMembers();
-                automator.findPaginationInfo();
-                if (automator.hasNextPage()) {
-                    automator.callNextButton();
+                // We need to find out the number of maximumMessage per hour has been met
+                if (automator.getCurrentMessageCount() >= automator.getMaximumMessagesPerHour()) {
+                    // We need to stop the clock
+                    scheduler.stop();
+                    automator.setCurrentMessageCount(0);
                     setTimeout(() => {
-                        clear();
                         scheduler.start();
-                    }, 3000)
-
+                    },1000);
                 } else {
-                    //We might
-                    alert("Finished")
-                    automator.save();
+
+                    if (automator.hasNextPage()) {
+                        automator.callNextButton();
+                        setTimeout(() => {
+                            clear();
+                            scheduler.start();
+                        }, 3000)
+                    }
+                    else
+                    {
+                        //We might
+                        alert("Finished")
+                        automator.save();
+                    }
+
                 }
+
 
             }
         }
@@ -133,15 +146,13 @@ setTimeout(async() => {
         return true;
     });
 
- // append skool counter to the dom
+    // append skool counter to the dom
 
- const skoolcounter = document.createElement('div');
- skoolcounter.id = 'skool-counter';
- const root = createRoot(skoolcounter);
- root.render(<ClockCounter />);
- document.body.appendChild(skoolcounter);
-
-
+    const skoolcounter = document.createElement('div');
+    skoolcounter.id = 'skool-counter';
+    const root = createRoot(skoolcounter);
+    root.render(<ClockCounter/>);
+    document.body.appendChild(skoolcounter);
 
 
 }, 3000)

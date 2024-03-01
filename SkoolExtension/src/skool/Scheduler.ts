@@ -8,7 +8,7 @@ export class Scheduler {
 
     private startTiming: number = 0;
 
-    private duration: number = 10;
+    private duration: number = 5;
 
     private maximumInterval: number = 10;
 
@@ -18,13 +18,7 @@ export class Scheduler {
 
         // Get the PopUI data and set the duration from chrome storage
         const skoolStorage = new SkoolStorage();
-        skoolStorage.getPopupData().then((data) => {
-            if (data) {
-                console.log(data.messagePerHour);
-                this.setDuration(data.messagePerHour );
 
-            }
-        });
     }
 
     setDuration(duration: number) {

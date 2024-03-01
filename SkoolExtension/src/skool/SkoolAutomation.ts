@@ -18,13 +18,15 @@ export interface SkoolMemberEntity<T> {
     data: T
 
 }
+
 export interface StorageMemberChecker {
-    id:string;
+    id: string;
     name: string;
     marked: boolean;
+    data?: HTMLElement
 }
 
-export class SkoolAutomation{
+export class SkoolAutomation {
 
 
     private totalPages = 0
@@ -37,7 +39,7 @@ export class SkoolAutomation{
     private maximumMessagesPerHour = 0;
     private currentMessageCount = 0;
     private message: string = "";
-    private storageMemoryChecker: StorageMemberChecker[] = [];
+    private memberQueue: StorageMemberChecker[] = [];
 
 
     constructor() {
@@ -50,127 +52,165 @@ export class SkoolAutomation{
         });
 
         // create storage for current members
-        localStorage.setItem("currentMembers",JSON.stringify([]));
+        localStorage.setItem("currentMembers", JSON.stringify([]));
 
     }
 
-    setMaximumMessagesPerHour(maximumMessagesPerHour: number){
+    setMaximumMessagesPerHour(maximumMessagesPerHour: number) {
         this.maximumMessagesPerHour = maximumMessagesPerHour;
     }
-    setMessage(message: string){
+
+    setMessage(message: string) {
         this.message = message;
     }
 
-    getCurrentMessageCount(){
+    getCurrentMessageCount() {
         return this.currentMessageCount;
     }
+    setCurrentMessageCount(count: number) {
+        this.currentMessageCount = count;
+    }
 
-    getMaximumMessagesPerHour(){
+
+    getMaximumMessagesPerHour() {
         return this.maximumMessagesPerHour;
     }
 
-    setTotalPages(totalPages: number){
+    setTotalPages(totalPages: number) {
         this.totalPages = totalPages;
     }
 
-    setCurrentPage(currentPage: number){
+    setCurrentPage(currentPage: number) {
         this.currentPage = currentPage;
     }
 
-    setItemsPerPage(itemsPerPage: number){
+    setItemsPerPage(itemsPerPage: number) {
         this.itemsPerPage = itemsPerPage;
     }
-    findMembers(){
-        const domNodes = q(MEMBERSHIP_DOM,false);
+
+    findMembers() {
+        const domNodes = q(MEMBERSHIP_DOM, false);
         // Assign the childNodes to the property
-        if(domNodes){
-            this.currentMembersToSpam = (domNodes.childNodes);
+        if (domNodes) {
+            if(this.currentMembersToSpam.length === 0){
+                this.currentMembersToSpam = (domNodes.childNodes);
+            }else{
+                this.currentMembersToSpam.push(...domNodes.childNodes);
+            }
+
             this.setItemsPerPage(this.currentMembersToSpam.length);
         }
-
-
     }
 
-    getMembers(){
-        return this.currentMembersToSpam;
+    getMembers(): HTMLElement[] {
+        // get the maximum messages from the localStorage currentQueue members using a slice from maximumMessagesPerHour
+        return this.memberQueue.filter((item) => (
+            item.marked === false
+        )).slice(0, this.maximumMessagesPerHour).map((item) => (item.data))
     }
 
-    extractMapMemberData(member: HTMLElement){
+    getProcessedMembersCount(): number {
+        const members = localStorage.getItem("currentQueueMembers");
+        const memberQueue: StorageMemberChecker[] = JSON.parse(members);
+        return memberQueue.filter((item) => (
+            item.marked === true
+        )).length
+    }
 
-        const parentNode  = q(DISPLAY_SELECTOR,false, member);
+
+    extractMapMemberData(member: HTMLElement) {
+
+        const parentNode = q(DISPLAY_SELECTOR, false, member);
         const memberData: SkoolMemberEntity<HTMLElement> = {
             data: member,
-            displayName:parentNode.childNodes.item(0).innerText,
+            displayName: parentNode.childNodes.item(0).innerText,
             userId: parentNode.nextSibling.innerText
         }
         return memberData
     }
 
-    addProcessedMember(token:string, member: SkoolMemberEntity<HTMLElement>){
+    addProcessedMember(token: string, member: SkoolMemberEntity<HTMLElement>) {
         console.log(member)
         this.currentMembersProcessed.records.push({
-            id:member.userId,
+            id: member.userId,
             name: member.displayName
-            })
-
-
+        })
     }
 
-    async process(item: SkoolMemberEntity<HTMLElement>){
+    async process(item: SkoolMemberEntity<HTMLElement>) {
         const chatButton = this.findChatButton(item.data);
-        if(!chatButton) return new Promise((resolve,reject) => reject(false));
-        return new Promise(async(resolve,reject) => {
-           await this.clickMemberChat(chatButton);
-           // await this.sendMessageToMember(item.data,this.message);
-           await this.clickCloseButton();
+        if (!chatButton) return new Promise((resolve, reject) => reject(false));
+        return new Promise(async (resolve, reject) => {
+            await this.clickMemberChat(chatButton);
+            // await this.sendMessageToMember(item.data,this.message);
+            await this.clickCloseButton();
             resolve(true);
-            this.addProcessedMember(item.userId,item);
-            this.maximumMessagesPerHour++;
+            this.addProcessedMember(item.userId, item);
+            this.currentMessageCount++;
             this.persistToLocalStorage(item);
 
         });
     }
-    debug(){
+
+    debug() {
         console.log(this.currentMembersToSpam.length);
         // print all the pagination details
-
-
     }
 
-    persistToLocalStorage(item: SkoolMemberEntity<HTMLElement>){
+    persistToLocalStorage(item: SkoolMemberEntity<HTMLElement>) {
         //Get the currentMember and add to it
-        const currentMembers = localStorage.getItem("currentMembers");
-        const memberQueue:StorageMemberChecker[]  = JSON.parse(currentMembers);
-        memberQueue.push({
-           id: item.userId.toString(),
-           name: item.displayName,
-           marked: true
-        });
-        localStorage.setItem("currentMembers",JSON.stringify(memberQueue));
 
-
-    }
-
-    persistTotalMembers(){
-        if(this.getMembers().length){
-            const members = this.getMembers();
-            const memberQueue:StorageMemberChecker[] = [];
-            members.forEach((item) => {
-                const member = this.extractMapMemberData(item);
-                memberQueue.push({
-                    id: member.userId.toString(),
-                    name: member.displayName,
-                    marked: false
-                });
-            });
-            localStorage.setItem("currentQueueMembers",JSON.stringify(memberQueue));
+        const currentMembers = localStorage.getItem("currentQueueMembers");
+        const memberQueue: StorageMemberChecker[] = JSON.parse(currentMembers);
+        // find the member and mark it as processed
+        const member = memberQueue.find((member) => member.id === item.userId);
+        if (member) {
+            member.marked = true;
         }
+        localStorage.setItem("currentQueueMembers", JSON.stringify(memberQueue.map((item) => {
+            return {
+                id: item.id,
+                name: item.name,
+                marked: item.marked
+            }
+        })));
+
+
     }
 
-    findChatButton(node: HTMLElement): HTMLElement{
-        if(node){
-            const buttons = q(BUTTON_WRAPPER,false, node)
-            if(!buttons) return null;
+    persistTotalMembers() {
+
+        const members = this.currentMembersToSpam;
+        const memberQueue: StorageMemberChecker[] = [];
+        members.forEach((item: HTMLElement) => {
+            const member = this.extractMapMemberData(item);
+            memberQueue.push({
+                id: member.userId.toString(),
+                name: member.displayName,
+                marked: false,
+                data: item
+            });
+            this.memberQueue.push({
+                id: member.userId.toString(),
+                name: member.displayName,
+                marked: false,
+                data: item
+            });
+        });
+        localStorage.setItem("currentQueueMembers", JSON.stringify(memberQueue.map((item) => {
+            return {
+                id: item.id,
+                name: item.name,
+                marked: item.marked
+            }
+        })));
+
+    }
+
+    findChatButton(node: HTMLElement): HTMLElement {
+        if (node) {
+            const buttons = q(BUTTON_WRAPPER, false, node)
+            if (!buttons) return null;
             return buttons.childNodes.item(0);
         }
         return null;
@@ -178,16 +218,16 @@ export class SkoolAutomation{
 
     }
 
-    async save(){
+    async save() {
         const storage = new SkoolStorage();
         await storage.saveProcessedRecords(this.currentMembersProcessed.records);
     }
 
 
     // Order 1
-    async clickMemberChat(node: HTMLElement){
-        return new Promise((resolve,reject) => {
-            if(node){
+    async clickMemberChat(node: HTMLElement) {
+        return new Promise((resolve, reject) => {
+            if (node) {
                 node.click();
                 resolve(true);
             }
@@ -195,28 +235,27 @@ export class SkoolAutomation{
 
     }
 
-    async sendMessageToMember(node: HTMLElement, message: string){
-        return new Promise<any>(async (resolve,reject) => {
+    async sendMessageToMember(node: HTMLElement, message: string) {
+        return new Promise<any>(async (resolve, reject) => {
 
-            if(node){
+            if (node) {
                 const REACT_PROPS = /__reactProps/gi;
                 const isModalFound = await this.checkElement(MODAL_MEMBER);
-                if(isModalFound){
-                    const modalDom = q(MODAL_MEMBER,false);
-                    await this.checkElement(TEXT_AREA,modalDom);
-                    const textAreaDom = q(TEXT_AREA,false,modalDom);
+                if (isModalFound) {
+                    const modalDom = q(MODAL_MEMBER, false);
+                    await this.checkElement(TEXT_AREA, modalDom);
+                    const textAreaDom = q(TEXT_AREA, false, modalDom);
 
-                        // Find the React Props and send the message
+                    // Find the React Props and send the message
                     setTimeout(async () => {
                         textAreaDom.innerText = message;
-                        await sendMessage(message,this.getChannelName()).then((response) => {
+                        await sendMessage(message, this.getChannelName()).then((response) => {
                             setTimeout(() => {
                                 textAreaDom.innerText = "";
                                 resolve(true);
-                            },2000 );
+                            }, 2000);
                         });
-                    },3000)
-
+                    }, 3000)
 
 
                 }
@@ -227,27 +266,28 @@ export class SkoolAutomation{
 
     }
 
-    getChannelName(){
+    getChannelName() {
         const channelName = "currentUser";
         return localStorage.getItem(channelName);
     }
-    clickCloseButton(){
-        return new Promise(async(resolve,reject)=> {
-                const isModalFound = await this.checkElement(MODAL_MEMBER);
-                if(isModalFound){
-                    const modalDom = q(MODAL_MEMBER,false);
-                    await this.checkElement(MODAL_CONTROLS,modalDom);
-                    const modalControlNode = q(MODAL_CONTROLS,false,modalDom)
-                    await this.checkElement("button.styled__ButtonWrapper-sc-dscagy-1",modalControlNode);
-                    if(modalControlNode){
-                        const closeButton = modalControlNode.childNodes.item(2) as HTMLElement;
-                        setTimeout(() => {
-                            closeButton.click();
-                            resolve(true);
-                        },4000)
-                    }
 
+    clickCloseButton() {
+        return new Promise(async (resolve, reject) => {
+            const isModalFound = await this.checkElement(MODAL_MEMBER);
+            if (isModalFound) {
+                const modalDom = q(MODAL_MEMBER, false);
+                await this.checkElement(MODAL_CONTROLS, modalDom);
+                const modalControlNode = q(MODAL_CONTROLS, false, modalDom)
+                await this.checkElement("button.styled__ButtonWrapper-sc-dscagy-1", modalControlNode);
+                if (modalControlNode) {
+                    const closeButton = modalControlNode.childNodes.item(2) as HTMLElement;
+                    setTimeout(() => {
+                        closeButton.click();
+                        resolve(true);
+                    }, 4000)
                 }
+
+            }
 
 
         });
@@ -255,15 +295,14 @@ export class SkoolAutomation{
     }
 
 
-    findPaginationInfo(){
-        const paginationDOM = q(TOTAL_PAGES_DOM_ELEMENT,false);
+    findPaginationInfo() {
+        const paginationDOM = q(TOTAL_PAGES_DOM_ELEMENT, false);
         const paginationText = paginationDOM.innerText;
         console.log(paginationText);
         // write a regex for the following text capturing the number in it 1-30 of 565
         const regex = /(\d+)-(\d+) of (\d+)/g;
         const match = regex.exec(paginationText);
-        if(match){
-
+        if (match) {
 
 
             this.setTotalPages(parseInt(match[3]));
@@ -275,6 +314,7 @@ export class SkoolAutomation{
         }
 
     }
+
     private rafAsync() {
         return new Promise(resolve => {
             requestAnimationFrame(resolve); //faster than set time out
@@ -290,32 +330,28 @@ export class SkoolAutomation{
         return querySelector;
     }
 
-    callNextButton(){
-        const buttons = q(PAGINATION_CONTROL,true);
+    callNextButton() {
+        const buttons = q(PAGINATION_CONTROL, true);
         const nextButton = buttons.item(buttons.length - 1);
-        if(nextButton){
+        if (nextButton) {
             nextButton.parentNode.click();
         }
     }
-    clear(){
+
+    clear() {
         this.currentMembersToSpam = [];
         this.currentMembersProcessed.records = [];
     }
 
-    findActiveButton(){
-        const button = q(PAGINATION_ACTIVE_BUTTON,false);
+    findActiveButton() {
+        const button = q(PAGINATION_ACTIVE_BUTTON, false);
         this.setCurrentPage(parseInt(button.childNodes.item(0).innerText));
     }
 
-    hasNextPage(){
+    hasNextPage() {
         const totalPage = Math.floor(this.totalPages / this.itemsPerPage);
-
-        return (this.currentPage !== totalPage )
-
-
+        return (this.currentPage !== totalPage)
     }
-
-
 
 
 }

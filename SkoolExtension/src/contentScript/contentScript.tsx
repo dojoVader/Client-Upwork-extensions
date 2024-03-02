@@ -32,6 +32,7 @@ setTimeout(async () => {
     const clear = () => {
         automator.clear();
         queueManager.clear();
+
     }
 
 
@@ -56,27 +57,29 @@ setTimeout(async () => {
     const getCurrentQueueMembers = (): [any] => {
         return JSON.parse(localStorage.getItem('currentQueueMembers'));
     }
+    const isMaximumMessageCountReached = () => automator.getCurrentMaximumCount() >= automator.getMaximumMessagesPerHour();
+
 
     scheduler.onAnimationEnd(() => {
         //Get the members
         clear();
         automator.findPaginationInfo();
         automator.findActiveButton();
-        automator.findMembers();
-        automator.persistTotalMembers();
-        const membersFound = automator.getMembers();
-        // Check that we have members
-        if (membersFound.length === 0) {
+        const result = automator.findMembers();
+        if (result === false) {
             alert("No members found,Please confirm that you are on the member/search page and try again.");
             return;
         }
+        automator.persistTotalMembers();
+        const membersFound = automator.getMembers();
+        // Check that we have members
         Array.from(membersFound).forEach(item => {
 
             const memberData = automator.extractMapMemberData(item);
             //add to the Queue
-            queueManager.enqueue(memberData.userId, memberData);
-            //
-
+            if(automator.findChatButton(memberData.data)){
+                queueManager.enqueue(memberData.userId, memberData);
+            }
         })
 
         const iterator = queueManager.getList().entries();
@@ -97,21 +100,23 @@ setTimeout(async () => {
 
             } else {
                 // We need to find out the number of maximumMessage per hour has been met
-                if (automator.getCurrentMessageCount() >= automator.getMaximumMessagesPerHour()) {
+                if (isMaximumMessageCountReached()) {
                     // We need to stop the clock
+                    automator.setCurrentMaximumCount(0)
                     scheduler.stop();
-                    automator.setCurrentMessageCount(0);
                     setTimeout(() => {
                         scheduler.start();
                     },1000);
                 } else {
-
-                    if (automator.hasNextPage()) {
-                        automator.callNextButton();
-                        setTimeout(() => {
-                            clear();
-                            scheduler.start();
-                        }, 3000)
+                    if(automator.getCurrentMessageCount() < automator.getTotalMembers()) {
+                        if (automator.hasNextPage()) {
+                            automator.callNextButton();
+                            setTimeout(() => {
+                                clear();
+                                localStorage.setItem('currentQueueMembers', JSON.stringify([]));
+                                scheduler.start();
+                            }, 3000)
+                        }
                     }
                     else
                     {

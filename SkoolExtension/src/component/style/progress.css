@@ -71,6 +71,10 @@ button.red-scheme.inactive {
   background: rgba(20, 81, 62, 0.3);
 }
 
+.body {
+  background: #F8F8FD;
+}
+
 .progress {
   stroke-width: 23;
   stroke: #555CC1;
@@ -78,8 +82,51 @@ button.red-scheme.inactive {
   fill: none;
   transform: rotate(270deg);
   transform-origin: center;
-  stroke-dashoffset: 10;
-  stroke-dasharray: 630;
+  stroke-dashoffset: 1200;
+  stroke-dasharray: 1200;
+}
+
+.progress-stats {
+  font-family: Inter, sans-serif;
+}
+.progress-stats span {
+  color: #545bc0;
+  display: inline-block;
+  text-align: center;
+  vertical-align: text-top;
+  font-size: 30px;
+  line-height: 12.8999996185px;
+  border-style: hidden;
+  outline: none;
+  width: 100%;
+  font-weight: 600;
+  margin-bottom: 21px;
+}
+.progress-stats .message {
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  margin-bottom: 11px;
+  font-weight: bold;
+  color: #383838;
+}
+
+button.logs {
+  width: 270px;
+  background: white;
+  border-radius: 10px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2%;
+  margin: 0 auto 7%;
+  color: #D2513E;
+  font-weight: bold;
+  column-gap: 9px;
+}
+button.logs span {
+  font-size: 10px;
 }
 
 .progress-text {

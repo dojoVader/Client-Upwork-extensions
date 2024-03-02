@@ -1,5 +1,6 @@
 import {q, sendMessage} from "../utils/helpers";
 import {SkoolStorage} from "./SkoolStorage";
+import {useProgressStore} from "../zustand/store.progress";
 
 const TOTAL_PAGES_DOM_ELEMENT = "div.styled__DesktopPaginationMeta-sc-4zz1jl-2 ";
 const MEMBERSHIP_DOM = "div.styled__MembersListWrapper-sc-ne2uns-0";
@@ -29,7 +30,7 @@ export interface StorageMemberChecker {
 export class SkoolAutomation {
 
 
-    private totalPages = 0
+    private totalMembers = 0
     private currentPage = 0;
     private itemsPerPage = 0;
     private currentMembersToSpam: HTMLElement[] = [];
@@ -38,8 +39,10 @@ export class SkoolAutomation {
     }
     private maximumMessagesPerHour = 0;
     private currentMessageCount = 0;
+    private currentMaximumCount = 0;
     private message: string = "";
     private memberQueue: StorageMemberChecker[] = [];
+    private  progressAction = useProgressStore.getState().actions;
 
 
     constructor() {
@@ -48,7 +51,7 @@ export class SkoolAutomation {
         const skoolStorage = new SkoolStorage();
         skoolStorage.getPopupData().then((data) => {
             this.setMessage(data.message);
-            this.setMaximumMessagesPerHour(data.messagePerHour);
+            this.setMaximumMessagesPerHour(8);
         });
 
         // create storage for current members
@@ -67,8 +70,13 @@ export class SkoolAutomation {
     getCurrentMessageCount() {
         return this.currentMessageCount;
     }
+
     setCurrentMessageCount(count: number) {
         this.currentMessageCount = count;
+    }
+
+    getTotalMembers() {
+        return this.totalMembers;
     }
 
 
@@ -76,12 +84,19 @@ export class SkoolAutomation {
         return this.maximumMessagesPerHour;
     }
 
-    setTotalPages(totalPages: number) {
-        this.totalPages = totalPages;
+    getCurrentMaximumCount() {
+        return this.currentMaximumCount;
+    }
+
+    setTotalMembers(totalMembers: number) {
+        this.totalMembers = totalMembers;
     }
 
     setCurrentPage(currentPage: number) {
         this.currentPage = currentPage;
+    }
+    setCurrentMaximumCount(count: number) {
+        this.currentMaximumCount = count;
     }
 
     setItemsPerPage(itemsPerPage: number) {
@@ -92,21 +107,36 @@ export class SkoolAutomation {
         const domNodes = q(MEMBERSHIP_DOM, false);
         // Assign the childNodes to the property
         if (domNodes) {
-            if(this.currentMembersToSpam.length === 0){
+            if (this.currentMembersToSpam.length === 0) {
                 this.currentMembersToSpam = (domNodes.childNodes);
-            }else{
+            } else {
                 this.currentMembersToSpam.push(...domNodes.childNodes);
             }
 
             this.setItemsPerPage(this.currentMembersToSpam.length);
+        } else {
+            return null;
         }
     }
 
+    getCurrentMembersRecord() {
+        return this.currentMembersToSpam.length;
+    }
+
     getMembers(): HTMLElement[] {
+        this.removeDuplicatesFromQueueMember();
         // get the maximum messages from the localStorage currentQueue members using a slice from maximumMessagesPerHour
         return this.memberQueue.filter((item) => (
             item.marked === false
         )).slice(0, this.maximumMessagesPerHour).map((item) => (item.data))
+    }
+
+    removeDuplicatesFromQueueMember() {
+        // Remove duplicates from the this.memberQueue
+        const memberQueue = this.memberQueue;
+        this.memberQueue = memberQueue.filter
+        ((v, i, a) =>
+            a.findIndex(t => (t.id === v.id)) === i);
     }
 
     getProcessedMembersCount(): number {
@@ -139,7 +169,11 @@ export class SkoolAutomation {
 
     async process(item: SkoolMemberEntity<HTMLElement>) {
         const chatButton = this.findChatButton(item.data);
-        if (!chatButton) return new Promise((resolve, reject) => reject(false));
+        if (!chatButton){
+            return new Promise((resolve, reject) => reject(false));
+        }
+
+
         return new Promise(async (resolve, reject) => {
             await this.clickMemberChat(chatButton);
             // await this.sendMessageToMember(item.data,this.message);
@@ -147,7 +181,20 @@ export class SkoolAutomation {
             resolve(true);
             this.addProcessedMember(item.userId, item);
             this.currentMessageCount++;
+            this.currentMaximumCount++;
             this.persistToLocalStorage(item);
+            this.progressAction.setProgress({
+                totalCount: this.getTotalMembers(),
+                currentCount: this.getCurrentMessageCount(),
+                textContent: "-"
+            });
+            chrome.storage.local.set({
+                progressEvent: {
+                    currentCount: this.getCurrentMessageCount(),
+                    totalCount: this.getTotalMembers(),
+                    textContent: "-"
+                }
+            }).then();
 
         });
     }
@@ -167,6 +214,12 @@ export class SkoolAutomation {
         if (member) {
             member.marked = true;
         }
+
+        // make the selected memberQueue marked as true
+
+        this.memberQueue.find((member) => member.id === item.userId).marked = true;
+
+
         localStorage.setItem("currentQueueMembers", JSON.stringify(memberQueue.map((item) => {
             return {
                 id: item.id,
@@ -180,9 +233,10 @@ export class SkoolAutomation {
 
     persistTotalMembers() {
 
-        const members = this.currentMembersToSpam;
+        const members = Array.of(...this.currentMembersToSpam).filter(item => this.findChatButton(item) !== null)
+        const filteredMembers = this.checkIfExistsInCurrentQueueStorage(members);
         const memberQueue: StorageMemberChecker[] = [];
-        members.forEach((item: HTMLElement) => {
+        filteredMembers.forEach((item: HTMLElement) => {
             const member = this.extractMapMemberData(item);
             memberQueue.push({
                 id: member.userId.toString(),
@@ -305,11 +359,16 @@ export class SkoolAutomation {
         if (match) {
 
 
-            this.setTotalPages(parseInt(match[3]));
+            this.setTotalMembers(parseInt(match[3]));
 
             //Find the currentPage from activeButton innerText
             this.findActiveButton();
 
+            this.progressAction.setProgress({
+                totalCount: this.getTotalMembers(),
+                currentCount: this.getCurrentMessageCount(),
+                textContent: "-"
+            });
 
         }
 
@@ -349,9 +408,22 @@ export class SkoolAutomation {
     }
 
     hasNextPage() {
-        const totalPage = Math.floor(this.totalPages / this.itemsPerPage);
+        const totalPage = Math.floor(this.totalMembers / this.itemsPerPage);
         return (this.currentPage !== totalPage)
     }
 
 
+    private checkIfExistsInCurrentQueueStorage(members: HTMLElement[]) {
+        // Check if the member exists in the currentQueueMembers
+        const currentMembers = localStorage.getItem("currentQueueMembers");
+        const memberQueue: StorageMemberChecker[] = JSON.parse(currentMembers);
+        if (memberQueue.length === 0) return members;
+        const memberIds = memberQueue.filter(member => member.marked === false).map((item) => item.id);
+        return Array.of(...members).filter((item) => {
+            const member = this.extractMapMemberData(item);
+            return memberIds.includes(member.userId.toString());
+        })
+
+
+    }
 }

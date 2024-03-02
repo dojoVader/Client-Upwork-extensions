@@ -45,7 +45,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "asset.png", "sun.png","icon.png","icons/*.svg","icons/*.png" , "interceptor.js"
+        "asset.png", "sun.png","icon.png","icons/*.svg","icons/*.png" , "interceptor.js","img.png"
       ],
       "matches": [
         "<all_urls>"

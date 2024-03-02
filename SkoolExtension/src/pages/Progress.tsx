@@ -4,20 +4,39 @@ import "../component/style/progress.css";
 import {CircularProgressBar} from "../component/shared/CircularProgressBar";
 import {useTickStore} from "../zustand/store.tick";
 import {useSettingsStore, screen as whichScreen} from "../zustand/store.settings";
+import {useProgressStore} from "../zustand/store.progress";
 function Progress() {
     const state = useTickStore(state => state);
     const action = useTickStore(state => state.actions);
     const screenAction = useSettingsStore(state => state.actions);
     const className = `primary__button ${state.settings.triggerClock ? 'red-scheme' : ''}`;
+    const [currentCount, setCurrentCount] = useState();
+    const [totalCount, setTotalCount] = useState();
+    const [textContent, setTextContent] = useState();
+
+    chrome.storage.local.onChanged.addListener((changes) => {
+        if(changes.progressEvent){
+            const {currentCount, totalCount, textContent} = changes.progressEvent.newValue;
+            setCurrentCount(currentCount);
+            setTotalCount(totalCount);
+            setTextContent(textContent);
+        }
+    });
+
+
 
 
 
     return (
-        <div>
+        <div className={'body'}>
             <Header triggerClock={state.settings.triggerClock}/>
             <div>
-                <CircularProgressBar/>
-                <WarningLabel/>
+                <CircularProgressBar
+                    currentCount={currentCount || 0}
+                    totalCount={totalCount || 0}
+                    textContent={textContent || '-'}/>
+                {/*<WarningLabel/>*/}
+                <CompletedLabel currentCount={currentCount || 0} totalCount={totalCount || 0} />
             </div>
 
             <div className="button-cage">
@@ -67,6 +86,38 @@ function Progress() {
 }
 
 export default Progress;
+interface CompletedLabelProps {
+    currentCount: number;
+    totalCount: number;
+
+}
+const CompletedLabel = (props: CompletedLabelProps) => {
+    const {currentCount, totalCount} = props;
+    return (
+        <>
+            <div className="progress-stats">
+                <span>{currentCount}/{totalCount}</span>
+
+                <div className="message">
+                    Messages sent successfully!
+                </div>
+
+            </div>
+            <button className={'logs'}>
+                <svg width="14" height="18" viewBox="0 0 14 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" clipRule="evenodd"
+                          d="M8.87496 1.08333C8.87496 0.968274 8.78169 0.875 8.66663 0.875H2.83329C1.56764 0.875 0.541626 1.90102 0.541626 3.16667V14.8333C0.541626 16.099 1.56764 17.125 2.83329 17.125H11.1666C12.4323 17.125 13.4583 16.099 13.4583 14.8333V6.62255C13.4583 6.50749 13.365 6.41422 13.25 6.41422H9.49996C9.15478 6.41422 8.87496 6.13439 8.87496 5.78922V1.08333ZM8.69288 9.97029C8.96242 9.75466 9.35573 9.79836 9.57136 10.0679C9.78699 10.3374 9.74329 10.7307 9.47375 10.9464L7.39546 12.609C7.28822 12.6967 7.15128 12.7495 7.00203 12.75L7.00001 12.75L6.99474 12.75C6.84803 12.7488 6.71337 12.697 6.60733 12.6113L4.52621 10.9464C4.25668 10.7307 4.21298 10.3374 4.42861 10.0679C4.64424 9.79836 5.03754 9.75466 5.30708 9.97029L6.37501 10.8246V7.95833C6.37501 7.61316 6.65483 7.33333 7.00001 7.33333C7.34518 7.33333 7.62501 7.61316 7.62501 7.95833V10.8246L8.69288 9.97029Z"
+                          fill="#D2513E"/>
+                    <path
+                        d="M10.125 1.35345C10.125 1.1997 10.2855 1.10208 10.4051 1.19866C10.5059 1.28 10.5965 1.3753 10.6737 1.48296L13.1847 4.98121C13.2419 5.06085 13.1799 5.16422 13.0819 5.16422H10.3333C10.2182 5.16422 10.125 5.07094 10.125 4.95588V1.35345Z"
+                        fill="#D2513E"/>
+                </svg>
+                <span>Download message logs</span>
+
+            </button>
+        </>
+    );
+}
 
 const WarningLabel = () => {
     return (

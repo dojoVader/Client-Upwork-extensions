@@ -12,7 +12,7 @@ interface Settings {
 }
 
 let settings: Settings = {
-    currentScreen: screen.PROGRESS
+    currentScreen: screen.WELCOME
 };
 
 export interface SettingsState {

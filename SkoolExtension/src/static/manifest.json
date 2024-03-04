@@ -1,17 +1,20 @@
 {
-  "name": "Skool Extension",
+  "name": "Teachers Aid",
   "version": "1.0.0",
-  "description": "An extension that sends messages to skool Members",
+  "description": "A Skool extension to help you manage and communicate with your community members.",
   "manifest_version": 3,
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "icon16.png",
+    "19": "icon19.png",
+    "32": "icon32.png",
+    "38": "icon38.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Netflix",
-    "default_icon": "icon.png"
+    "default_icon": "icon32.png"
   },
   "permissions": [
     "storage",
@@ -45,7 +48,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "asset.png", "sun.png","icon.png","icons/*.svg","icons/*.png" , "interceptor.js","img.png"
+        "asset.png", "sun.png","*.png","icons/*.svg","icons/*.png" , "interceptor.js","img.png"
       ],
       "matches": [
         "<all_urls>"

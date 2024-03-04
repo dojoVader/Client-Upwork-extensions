@@ -26,3 +26,8 @@
 
   cursor: pointer;
 }
+
+.svg_timer{
+  display: flex;
+  column-gap: 3px
+}

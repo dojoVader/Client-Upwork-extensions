@@ -10,6 +10,12 @@ div.button-cage button {
   align-items: center;
   justify-content: center;
   background: #363EAB;
+  width: 100%;
+  padding: 3%;
+  color: white;
+  border-radius: 11px;
+  border: unset;
+  /* disabled state*/
 }
 div.button-cage button:active {
   background: #363EAB;
@@ -19,6 +25,13 @@ div.button-cage button:hover {
 }
 div.button-cage button.inactive {
   background: rgba(54, 62, 171, 0.3);
+}
+div.button-cage button:disabled {
+  background: rgba(54, 62, 171, 0.3);
+  cursor: not-allowed;
+}
+div.button-cage .cursor {
+  cursor: pointer;
 }
 div.button-cage button.red-scheme {
   margin-top: unset;
@@ -43,6 +56,12 @@ button {
   align-items: center;
   justify-content: center;
   background: #363EAB;
+  width: 100%;
+  padding: 3%;
+  color: white;
+  border-radius: 11px;
+  border: unset;
+  /* disabled state*/
 }
 button:active {
   background: #363EAB;
@@ -52,6 +71,14 @@ button:hover {
 }
 button.inactive {
   background: rgba(54, 62, 171, 0.3);
+}
+button:disabled {
+  background: rgba(54, 62, 171, 0.3);
+  cursor: not-allowed;
+}
+
+.cursor {
+  cursor: pointer;
 }
 
 button.red-scheme {

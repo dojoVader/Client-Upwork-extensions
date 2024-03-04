@@ -12,11 +12,15 @@ export const Sidebar = () => {
     const currentScreen = state.settings.currentScreen;
     const actions = useSettingsStore(state => state.actions);
 
-    if (localStorage.getItem("onboarding") === "true" && currentScreen === screen.WELCOME) {
+    if (localStorage.getItem("onboarding") === "true" && currentScreen === "WELCOME") {
+
         actions.setSettings({
-            currentScreen: "SETTINGS"
+            currentScreen: screen.SETTINGS
         });
+
+
     }
+
 
 
     return (

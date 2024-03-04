@@ -2,17 +2,16 @@ import {useCounterStore} from "../zustand/SkoolCounter";
 import {SkoolStorage} from "./SkoolStorage";
 
 
-
-
 export class Scheduler {
 
     private startTiming: number = 0;
 
-    private duration: number = 5;
+    private duration: number = 10;
 
     private maximumInterval: number = 10;
 
     private callback: () => void = null;
+    private blastOff: boolean = false;
 
     constructor() {
 
@@ -20,6 +19,12 @@ export class Scheduler {
         const skoolStorage = new SkoolStorage();
 
     }
+
+    setBlastOff(blastOff: boolean) {
+        this.blastOff = blastOff;
+        this.onBlast();
+    }
+
 
     setDuration(duration: number) {
         this.duration = duration;
@@ -45,32 +50,57 @@ export class Scheduler {
 
     stop() {
         this.startTiming = 0;
+        chrome.storage.local
+            .set({clockData: {time: this.startTiming, counting: false}})
+            .then()
     }
+
+    private onBlast() {
+
+        chrome.storage.local
+            .set({clockData: {time: this.startTiming, counting: true}})
+            .then(() => {
+                this.callback();
+            })
+    }
+
 
     private onElapsed(timestamp: number) {
         // only run when localstorage clock is active
 
-        if(localStorage.getItem('clockStopped') === 'false') {
-            const duration = this.duration;
-            useCounterStore.getState().actions.setClock({
-                time: duration - (timestamp - this.startTiming) / 1000,
-                counting: true
-            });
-            // If the initial timing is not set let's set the timing
-            if (!this.startTiming) {
-                this.startTiming = timestamp;
-            }
+        chrome.storage.local.get('isRunning', (result) => {
+            if (result.isRunning === true) {
+                const duration = this.blastOff === true && this.startTiming === 0 ? 0 : this.duration;
+                if (this.blastOff) {
+                    this.blastOff = false;
+                }
+                useCounterStore.getState().actions.setClock({
+                    time: duration - (timestamp - this.startTiming) / 1000,
+                    counting: true
+                });
 
-            const timeElasped = (timestamp - this.startTiming) / 1000;
-            if (timeElasped > duration) {
-                console.log("10 Seconds Elapsed, time to fire callback....");
-                this.startTiming = 0; // reset
-                this.callback();
-            } else {
-                window.requestAnimationFrame((elapse) => this.onElapsed(elapse));
+                chrome.storage.local
+                    .set({clockData: {time: duration - (timestamp - this.startTiming) / 1000, counting: true}})
+                    .then()
+                // If the initial timing is not set let's set the timing
+                if (!this.startTiming) {
+                    this.startTiming = timestamp;
+                }
+
+                const timeElasped = (timestamp - this.startTiming) / 1000;
+                if (timeElasped > duration) {
+                    console.log("10 Seconds Elapsed, time to fire callback....");
+                    this.startTiming = 0; // reset
+                    this.callback();
+                } else {
+                    window.requestAnimationFrame((elapse) => this.onElapsed(elapse));
+                }
             }
-        }
+        });
+
+
     }
+
 
     getMaximumInterval() {
         return this.maximumInterval;

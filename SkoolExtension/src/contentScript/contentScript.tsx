@@ -9,6 +9,7 @@ import {ClockCounter} from "../component/shared/ClockCounter";
 declare var window;
 
 localStorage.setItem('currentQueueMembers', JSON.stringify([]));
+chrome.storage.local.remove(['clockData', 'progressEevent']).then()
 
 
 console.log("Now fired in the School Extension....");
@@ -62,6 +63,7 @@ setTimeout(async () => {
 
     scheduler.onAnimationEnd(() => {
         //Get the members
+
         clear();
         automator.findPaginationInfo();
         automator.findActiveButton();
@@ -77,7 +79,7 @@ setTimeout(async () => {
 
             const memberData = automator.extractMapMemberData(item);
             //add to the Queue
-            if(automator.findChatButton(memberData.data)){
+            if (automator.findChatButton(memberData.data)) {
                 queueManager.enqueue(memberData.userId, memberData);
             }
         })
@@ -86,49 +88,62 @@ setTimeout(async () => {
 
         // We need to trigger the Queue as long as it has items
         const peekAtQueue = () => {
-            // Do we have data in the queue
-            const iteratorValue = iterator.next();
-            if (!iteratorValue.done) {
-                const [_, item] = iteratorValue.value;
-                const [key, value] = item;
+            chrome.storage.local.get('clockData', (result) => {
+                if (result.clockData.counting) {
+                    // Do we have data in the queue
+                    const iteratorValue = iterator.next();
+                    if (!iteratorValue.done) {
+                        const [_, item] = iteratorValue.value;
+                        const [key, value] = item;
 
-                automator.process(value).then(() => {
-                    setTimeout(() => peekAtQueue(), calculateInterval());
-                }, () => {
-                    setTimeout(() => peekAtQueue(), calculateInterval());
-                })
+                        automator.process(value).then(() => {
+                            setTimeout(() => peekAtQueue(), calculateInterval());
+                        }, () => {
+                            setTimeout(() => peekAtQueue(), calculateInterval());
+                        })
 
-            } else {
-                // We need to find out the number of maximumMessage per hour has been met
-                if (isMaximumMessageCountReached()) {
-                    // We need to stop the clock
-                    automator.setCurrentMaximumCount(0)
-                    scheduler.stop();
-                    setTimeout(() => {
-                        scheduler.start();
-                    },1000);
-                } else {
-                    if(automator.getCurrentMessageCount() < automator.getTotalMembers()) {
-                        if (automator.hasNextPage()) {
-                            automator.callNextButton();
+                    } else {
+                        // We need to find out the number of maximumMessage per hour has been met
+                        if (isMaximumMessageCountReached()) {
+                            // We need to stop the clock
+                            automator.setCurrentMaximumCount(0)
+                            scheduler.stop();
                             setTimeout(() => {
-                                clear();
-                                localStorage.setItem('currentQueueMembers', JSON.stringify([]));
                                 scheduler.start();
-                            }, 3000)
+                            }, 1000);
+                        } else {
+                            if (automator.getCurrentMessageCount() < automator.getTotalMembers()) {
+                                if (automator.hasNextPage()) {
+                                    automator.callNextButton();
+                                    setTimeout(() => {
+                                        clear();
+                                        localStorage.setItem('currentQueueMembers', JSON.stringify([]));
+                                        scheduler.start();
+                                    }, 3000)
+                                }
+                            } else {
+                                //We might
+                                chrome.runtime.sendMessage({
+                                    type: 'notification',
+                                    data: {
+                                        title: "Skool Automation",
+                                        message: "All members have been processed"
+                                    }
+                                })
+                                automator.save();
+                                automator.clear(true)
+                            }
+
                         }
-                    }
-                    else
-                    {
-                        //We might
-                        alert("Finished")
-                        automator.save();
-                    }
 
+
+                    }
                 }
+                else{
+                    return;
+                }
+            });
 
-
-            }
         }
         peekAtQueue();
 
@@ -140,24 +155,28 @@ setTimeout(async () => {
         if (request.type === "startClock") {
             scheduler.start();
             // set to local storage that clock has started
-            localStorage.setItem('clockStopped', 'false');
+
             sendResponse({message: "Clock started"});
         } else if (request.type === "stopClock") {
             scheduler.stop();
             // set to local storage that clock has stopped
-            localStorage.setItem('clockStopped', 'true');
+
             sendResponse({message: "Clock stopped"});
+        } else if (request.type === "blastOff") {
+
+            scheduler.setBlastOff(true);
+            sendResponse({message: "Blasted Off"});
         }
         return true;
     });
 
     // append skool counter to the dom
 
-    const skoolcounter = document.createElement('div');
-    skoolcounter.id = 'skool-counter';
-    const root = createRoot(skoolcounter);
-    root.render(<ClockCounter/>);
-    document.body.appendChild(skoolcounter);
+    // const skoolcounter = document.createElement('div');
+    // skoolcounter.id = 'skool-counter';
+    // const root = createRoot(skoolcounter);
+    // root.render(<ClockCounter/>);
+    // document.body.appendChild(skoolcounter);
 
 
 }, 3000)

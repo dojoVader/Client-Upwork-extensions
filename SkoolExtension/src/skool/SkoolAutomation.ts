@@ -51,7 +51,7 @@ export class SkoolAutomation {
         const skoolStorage = new SkoolStorage();
         skoolStorage.getPopupData().then((data) => {
             this.setMessage(data.message);
-            this.setMaximumMessagesPerHour(8);
+            this.setMaximumMessagesPerHour(data.messagePerHour);
         });
 
         // create storage for current members
@@ -176,7 +176,7 @@ export class SkoolAutomation {
 
         return new Promise(async (resolve, reject) => {
             await this.clickMemberChat(chatButton);
-            // await this.sendMessageToMember(item.data,this.message);
+            await this.sendMessageToMember(item.data,this.message);
             await this.clickCloseButton();
             resolve(true);
             this.addProcessedMember(item.userId, item);
@@ -275,6 +275,9 @@ export class SkoolAutomation {
     async save() {
         const storage = new SkoolStorage();
         await storage.saveProcessedRecords(this.currentMembersProcessed.records);
+        chrome.storage.local
+            .set({clockData: {time: 0, counting: false}})
+            .then()
     }
 
 
@@ -369,6 +372,13 @@ export class SkoolAutomation {
                 currentCount: this.getCurrentMessageCount(),
                 textContent: "-"
             });
+            chrome.storage.local.set({
+                progressEvent: {
+                    currentCount: this.getCurrentMessageCount(),
+                    totalCount: this.getTotalMembers(),
+                    textContent: "-"
+                }
+            }).then();
 
         }
 
@@ -397,9 +407,12 @@ export class SkoolAutomation {
         }
     }
 
-    clear() {
+    clear(clearStorage: boolean = false) {
         this.currentMembersToSpam = [];
-        this.currentMembersProcessed.records = [];
+        if (clearStorage) {
+            this.currentMembersProcessed.records = [];
+        }
+
     }
 
     findActiveButton() {

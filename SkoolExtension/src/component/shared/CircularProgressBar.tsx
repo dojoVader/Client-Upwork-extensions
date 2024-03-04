@@ -111,7 +111,7 @@ export const CircularProgressBar = (props: CircularProgressBarProps) => {
                         width: "69px",
                         position: "absolute",
                         left: "127px",
-                        top: "132px"
+                        top: "176px"
                     }} alt=""/>
                 </div>
             )}

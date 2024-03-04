@@ -5,6 +5,11 @@
     align-items: center;
     justify-content: center;
     background: #363EAB;
+    width: 100%;
+    padding: 3%;
+    color: white;
+    border-radius: 11px;
+    border: unset;
     &:active{
       background: #363EAB;
     }
@@ -15,6 +20,15 @@
       background: rgba(54,62, 171, 0.3);
 
     }
+  /* disabled state*/
+    &:disabled{
+      background: rgba(54, 62, 171, 0.3);
+      cursor: not-allowed;
+    }
+  }
+
+  .cursor{
+    cursor: pointer;
   }
   button.red-scheme{
     margin-top: unset;

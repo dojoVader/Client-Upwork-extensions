@@ -8,7 +8,7 @@ import {useTickStore} from "../../zustand/store.tick";
 import {useProgressStore} from "../../zustand/store.progress";
 
 export const ClockCounter = () => {
-    const progressState = useProgressStore(state => state.settings);
+
     const skoolCounter = useCounterStore(state => state);
     const state = useTickStore(state => state);
     const convertToTime = (time: number) => {
@@ -21,13 +21,7 @@ export const ClockCounter = () => {
     const timer = (convertToTime(skoolCounter.data.time));
     return (
         <div className={"counter"}>
-            <div className="progress-bar">
 
-                <CircularProgressBar
-                    currentCount={progressState.currentCount}
-                    totalCount={progressState.totalCount}
-                    textContent={progressState.textContent}/>
-            </div>
             <div className={'count-stat'}>
                 <div>
                     <svg width={70} viewBox="0 0 2783 905" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -70,17 +70,17 @@ function ControlPageBody() {
 
                 <div className="control-option">
                     <div className="option-item">
-                        <input name={'messagePerHour'} checked={messagePerHour === 60}  onClick={() => setMessagePerHour(60)} type="radio"/> <span>60 Messages/hr</span>
+                        <input name={'messagePerHour'} checked={messagePerHour === 60}  onClick={() => setMessagePerHour(60)} type="radio"/> <span>60 messages / hr</span>
                     </div>
                 </div>
                 <div className="control-option">
                     <div className="option-item">
-                        <input name={'messagePerHour'} checked={messagePerHour === 30}  onClick={() => setMessagePerHour(30)} type="radio"/> <span>30 Messages/hr</span>
+                        <input name={'messagePerHour'} checked={messagePerHour === 30}  onClick={() => setMessagePerHour(30)} type="radio"/> <span>30 messages / hr</span>
                     </div>
                 </div>
                 <div className="control-option">
                     <div className="option-item">
-                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>10 Messages/hr</span>
+                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>10 messages / hr</span>
                     </div>
                 </div>
 
@@ -89,6 +89,18 @@ function ControlPageBody() {
             <div className="button-cage" >
                 {}
                 <button disabled={isRunningMode} onClick={ async(e) => {
+                    // strip out whitespaces
+                    const message = textarea.trim();
+                    if(message.length <= 0) {
+                        chrome.runtime.sendMessage({
+                            type: 'notification',
+                            data: {
+                                title: "Teachers Aid",
+                                message: "Please enter a message"
+                            }
+                        }).then();
+                        return;
+                    }
 
                     await sendToContentScript({
                         type: "blastOff"

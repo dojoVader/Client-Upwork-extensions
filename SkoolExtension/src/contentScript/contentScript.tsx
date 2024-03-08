@@ -4,12 +4,12 @@ import {createRoot} from "react-dom/client";
 import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
 import {QueueMap} from "../skool/Queue";
 import {Scheduler} from "../skool/Scheduler";
-import {ClockCounter} from "../component/shared/ClockCounter";
+
 
 declare var window;
 
 localStorage.setItem('currentQueueMembers', JSON.stringify([]));
-chrome.storage.local.remove(['clockData', 'progressEevent']).then()
+chrome.storage.local.remove(['clockData', 'progressEvent','stopWatch']).then()
 
 
 console.log("Now fired in the School Extension....");
@@ -34,21 +34,12 @@ setTimeout(async () => {
         automator.clear();
         queueManager.clear();
 
+
     }
 
 
     const scheduler = new Scheduler();
 
-    // // Set the duration when it changes from chrome.storage
-    //
-    // chrome.storage.local.onChanged.addListener((changes) => {
-    //
-    //     if(changes?.popupData?.newValue) {
-    //         const data = changes.popupData.newValue;
-    //         scheduler.setDuration(data.messagePerHour);
-    //
-    //     }
-    // });
 
     const calculateInterval = (): number => {
         const interval = Math.floor(Math.random() * scheduler.getMaximumInterval());
@@ -59,13 +50,13 @@ setTimeout(async () => {
         return JSON.parse(localStorage.getItem('currentQueueMembers'));
     }
     const isMaximumMessageCountReached = () => automator.getCurrentMaximumCount() >= automator.getMaximumMessagesPerHour();
-
+    automator.findPaginationInfo();
 
     scheduler.onAnimationEnd(() => {
         //Get the members
 
         clear();
-        automator.findPaginationInfo();
+
         automator.findActiveButton();
         const result = automator.findMembers();
         if (result === false) {
@@ -79,9 +70,8 @@ setTimeout(async () => {
 
             const memberData = automator.extractMapMemberData(item);
             //add to the Queue
-            if (automator.findChatButton(memberData.data)) {
-                queueManager.enqueue(memberData.userId, memberData);
-            }
+
+            queueManager.enqueue(memberData.userId, memberData);
         })
 
         const iterator = queueManager.getList().entries();
@@ -117,7 +107,7 @@ setTimeout(async () => {
                                     automator.callNextButton();
                                     setTimeout(() => {
                                         clear();
-                                        localStorage.setItem('currentQueueMembers', JSON.stringify([]));
+
                                         scheduler.start();
                                     }, 3000)
                                 }
@@ -126,12 +116,13 @@ setTimeout(async () => {
                                 chrome.runtime.sendMessage({
                                     type: 'notification',
                                     data: {
-                                        title: "Skool Automation",
+                                        title: "Teachers Aid",
                                         message: "All members have been processed"
                                     }
                                 })
                                 automator.save();
                                 automator.clear(true)
+                                chrome.storage.local.remove(['progressEvent', 'clockData']).then();
                             }
 
                         }
@@ -139,9 +130,7 @@ setTimeout(async () => {
 
                     }
                 }
-                else{
-                    return;
-                }
+
             });
 
         }
@@ -153,7 +142,7 @@ setTimeout(async () => {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(request);
         if (request.type === "startClock") {
-            scheduler.start();
+            scheduler.start()
             // set to local storage that clock has started
 
             sendResponse({message: "Clock started"});
@@ -163,20 +152,18 @@ setTimeout(async () => {
 
             sendResponse({message: "Clock stopped"});
         } else if (request.type === "blastOff") {
-
             scheduler.setBlastOff(true);
             sendResponse({message: "Blasted Off"});
+        }else if (request.type === "finished-event") {
+            automator.clear();
+            automator.resetCount();
+            // clear progessEvent from chrome.storage.local
+            chrome.storage.local.remove(['progressEvent']).then();
         }
         return true;
     });
 
-    // append skool counter to the dom
 
-    // const skoolcounter = document.createElement('div');
-    // skoolcounter.id = 'skool-counter';
-    // const root = createRoot(skoolcounter);
-    // root.render(<ClockCounter/>);
-    // document.body.appendChild(skoolcounter);
 
 
 }, 3000)

@@ -32,6 +32,9 @@ function Progress() {
     useEffect(() => {
         if(isFinished()){
             localStorage.setItem("completed", "true");
+            sendToContentScript({
+                type: 'finished-event'
+            }).then()
         }
     }, [currentCount]);
 
@@ -88,6 +91,7 @@ function Progress() {
         setLogs([])
         localStorage.removeItem('clockStopped');
         localStorage.removeItem('completed');
+
     }
 
 

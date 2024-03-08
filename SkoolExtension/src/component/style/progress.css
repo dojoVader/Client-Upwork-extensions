@@ -115,6 +115,7 @@ button.red-scheme.inactive {
 
 .progress-stats {
   font-family: Inter, sans-serif;
+  margin-top: -120px;
 }
 .progress-stats span {
   color: #545bc0;

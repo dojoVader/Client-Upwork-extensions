@@ -6,7 +6,7 @@ export class Scheduler {
 
     private startTiming: number = 0;
 
-    private duration: number = 10;
+    private duration: number = 15;
 
     private maximumInterval: number = 10;
 
@@ -18,6 +18,10 @@ export class Scheduler {
         // Get the PopUI data and set the duration from chrome storage
         const skoolStorage = new SkoolStorage();
 
+    }
+
+    getStartTiming() {
+        return this.startTiming;
     }
 
     setBlastOff(blastOff: boolean) {
@@ -37,6 +41,9 @@ export class Scheduler {
     onAnimationEnd(callback: () => void) {
         if (callback) {
             this.callback = callback;
+            chrome.storage.local
+                .set({clockData: {time: this.startTiming, counting: false}})
+                .then()
         }
     }
 
@@ -44,12 +51,15 @@ export class Scheduler {
     start() {
         console.log("Starting the scheduler...");
         console.log(this.callback);
+        chrome.storage.local
+            .set({clockData: {time: this.startTiming, counting: true}})
+            .then()
         window.requestAnimationFrame((elapse) => this.onElapsed(elapse));
     }
 
 
     stop() {
-        this.startTiming = 0;
+
         chrome.storage.local
             .set({clockData: {time: this.startTiming, counting: false}})
             .then()
@@ -68,9 +78,9 @@ export class Scheduler {
     private onElapsed(timestamp: number) {
         // only run when localstorage clock is active
 
-        chrome.storage.local.get('isRunning', (result) => {
-            if (result.isRunning === true) {
-                const duration = this.blastOff === true && this.startTiming === 0 ? 0 : this.duration;
+        chrome.storage.local.get('clockData', (result) => {
+            if (result.clockData.counting) {
+                const duration = this.duration;
                 if (this.blastOff) {
                     this.blastOff = false;
                 }

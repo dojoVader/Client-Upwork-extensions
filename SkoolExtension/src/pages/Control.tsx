@@ -8,7 +8,7 @@ function Control() {
 
     return (
         <div>
-            <Header triggerClock={false} />
+            <Header triggerClock={false}  hideClock={true}/>
             <ControlPageBody />
 
         </div>

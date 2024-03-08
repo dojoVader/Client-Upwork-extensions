@@ -8,7 +8,7 @@ function Welcome() {
 
   return (
     <div>
-      <Header triggerClock={false} disableHome={true} />
+      <Header triggerClock={false} disableHome={true} hideClock={true} />
       <WelcomePageBody />
     </div>
   );

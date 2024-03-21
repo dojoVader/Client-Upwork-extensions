@@ -19,7 +19,7 @@ export class SkoolStorage{
         await chrome.storage.local.set({[PROCESSED_RECORDS]: JSON.stringify(records)});
     }
 
-    async getProcessedRecords(): Promise<{id: number, name: string}[]>{
+    async getProcessedRecords(): Promise<{id: string, name: string}[]>{
         const data =  await chrome.storage.local.get([PROCESSED_RECORDS])
         return (data[PROCESSED_RECORDS]) ? JSON.parse(data[PROCESSED_RECORDS]) as any : [];
     }

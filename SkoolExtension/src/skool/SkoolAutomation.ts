@@ -53,7 +53,7 @@ export class SkoolAutomation {
         const skoolStorage = new SkoolStorage();
         skoolStorage.getPopupData().then((data) => {
             this.setMessage(data.message);
-            this.setMaximumMessagesPerHour(3 || data.messagePerHour);
+            this.setMaximumMessagesPerHour(data.messagePerHour);
         });
 
         // create storage for current members
@@ -177,6 +177,16 @@ export class SkoolAutomation {
             id: member.userId,
             name: member.displayName
         })
+        // Get the processed members from the storage and add to it
+        const storage = new SkoolStorage();
+        storage.getProcessedRecords().then((data) => {
+            const records: any = data;
+            records.push({
+                id: member.userId,
+                name: member.displayName
+            });
+            storage.saveProcessedRecords(records).then();
+        });
     }
 
     async process(item: SkoolMemberEntity<HTMLElement>) {
@@ -197,13 +207,20 @@ export class SkoolAutomation {
                 }
             }).then();
             this.persistToLocalStorage(item);
+            chrome.storage.local.set({
+                progressEvent: {
+                    currentCount: this.getCurrentMessageCount(),
+                    totalCount: this.getTotalMembers(),
+                    textContent: "-"
+                }
+            }).then();
             return new Promise((resolve, reject) => reject(false));
         }
 
 
         return new Promise(async (resolve, reject) => {
             await this.clickMemberChat(chatButton);
-            //await this.sendMessageToMember(item.data,this.message);
+            // await this.sendMessageToMember(item.data,this.message);
             await this.clickCloseButton();
             resolve(true);
             this.addProcessedMember(item.userId, item);
@@ -301,7 +318,7 @@ export class SkoolAutomation {
         const storage = new SkoolStorage();
         await storage.saveProcessedRecords(this.currentMembersProcessed.records);
         chrome.storage.local
-            .set({clockData: {time: 0, counting: false}})
+            .set({clockData: {time: 0, counting: false, schedule:false}})
             .then()
     }
 

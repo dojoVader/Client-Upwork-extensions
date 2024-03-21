@@ -11,6 +11,10 @@ declare var window;
 localStorage.setItem('currentQueueMembers', JSON.stringify([]));
 chrome.storage.local.remove(['clockData', 'progressEvent','stopWatch']).then()
 
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
 
 console.log("Now fired in the School Extension....");
 
@@ -42,7 +46,7 @@ setTimeout(async () => {
 
 
     const calculateInterval = (): number => {
-        const interval = Math.floor(Math.random() * scheduler.getMaximumInterval());
+        const interval = getRandomArbitrary(5,scheduler.getMaximumInterval())
         return interval * 1000;
     }
 
@@ -50,13 +54,13 @@ setTimeout(async () => {
         return JSON.parse(localStorage.getItem('currentQueueMembers'));
     }
     const isMaximumMessageCountReached = () => automator.getCurrentMaximumCount() >= automator.getMaximumMessagesPerHour();
-    automator.findPaginationInfo();
+
 
     scheduler.onAnimationEnd(() => {
         //Get the members
 
         clear();
-
+        automator.findPaginationInfo();
         automator.findActiveButton();
         const result = automator.findMembers();
         if (result === false) {
@@ -141,8 +145,11 @@ setTimeout(async () => {
     // listen to contentScript messages
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(request);
-        if (request.type === "startClock") {
-            scheduler.start()
+        if(request.type === "ping") {
+            sendResponse({message: "pong"});
+        }
+        else if (request.type === "startClock") {
+            scheduler.setBlastOff(true)
             // set to local storage that clock has started
 
             sendResponse({message: "Clock started"});
@@ -159,6 +166,10 @@ setTimeout(async () => {
             automator.resetCount();
             // clear progessEvent from chrome.storage.local
             chrome.storage.local.remove(['progressEvent']).then();
+        }
+        else if (request.type === "clearLogs") {
+            // clear the logs from the storage
+            localStorage.removeItem('currentQueueMembers');
         }
         return true;
     });

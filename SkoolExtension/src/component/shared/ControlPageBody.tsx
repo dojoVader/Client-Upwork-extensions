@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import "../style/control.css";
 import {PopupData} from "../../skool/SkoolStorage";
 import {useSettingsStore, screen as whichScreen } from "../../zustand/store.settings";
-import {sendToContentScript} from "../../utils/chrome-utils";
+import {sendToContentScript, sendToSkool} from "../../utils/chrome-utils";
 
 
 
@@ -88,7 +88,7 @@ function ControlPageBody() {
             </div>
             <div className="button-cage" >
                 {}
-                <button disabled={isRunningMode} onClick={ async(e) => {
+                <button  onClick={ async(e) => {
                     // strip out whitespaces
                     const message = textarea.trim();
                     if(message.length <= 0) {
@@ -102,7 +102,7 @@ function ControlPageBody() {
                         return;
                     }
 
-                    await sendToContentScript({
+                    await sendToSkool({
                         type: "blastOff"
                     })
                     actionsSettings.setSettings({

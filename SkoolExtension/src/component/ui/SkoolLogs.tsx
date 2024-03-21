@@ -20,7 +20,7 @@ export const SkoolLogs = () => {
         (async () => {
 
             const logs = await skoolStorage.getProcessedRecords();
-            setLogs(logs);
+            setLogs(logs as any);
         })();
     }, []);
 

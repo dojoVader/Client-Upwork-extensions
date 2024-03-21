@@ -42,7 +42,7 @@ export class Scheduler {
         if (callback) {
             this.callback = callback;
             chrome.storage.local
-                .set({clockData: {time: this.startTiming, counting: false}})
+                .set({clockData: {time: this.startTiming, counting: false, schedule: false}})
                 .then()
         }
     }
@@ -52,7 +52,7 @@ export class Scheduler {
         console.log("Starting the scheduler...");
         console.log(this.callback);
         chrome.storage.local
-            .set({clockData: {time: this.startTiming, counting: true}})
+            .set({clockData: {time: this.startTiming, counting: true, schedule: true}})
             .then()
         window.requestAnimationFrame((elapse) => this.onElapsed(elapse));
     }
@@ -61,17 +61,18 @@ export class Scheduler {
     stop() {
 
         chrome.storage.local
-            .set({clockData: {time: this.startTiming, counting: false}})
+            .set({clockData: {time: this.startTiming, counting: false, schedule: false}})
             .then()
     }
 
     private onBlast() {
 
         chrome.storage.local
-            .set({clockData: {time: this.startTiming, counting: true}})
+            .set({clockData: {time: this.startTiming, counting: true, schedule: false}})
             .then(() => {
-                this.callback();
+
             })
+        this.callback();
     }
 
 
@@ -90,7 +91,7 @@ export class Scheduler {
                 });
 
                 chrome.storage.local
-                    .set({clockData: {time: duration - (timestamp - this.startTiming) / 1000, counting: true}})
+                    .set({clockData: {time: duration - (timestamp - this.startTiming) / 1000, counting: true, schedule: true}})
                     .then()
                 // If the initial timing is not set let's set the timing
                 if (!this.startTiming) {
@@ -101,6 +102,9 @@ export class Scheduler {
                 if (timeElasped > duration) {
                     console.log("10 Seconds Elapsed, time to fire callback....");
                     this.startTiming = 0; // reset
+                    chrome.storage.local
+                        .set({clockData: {time: duration - (timestamp - this.startTiming) / 1000, counting: true, schedule: false}})
+                        .then()
                     this.callback();
                 } else {
                     window.requestAnimationFrame((elapse) => this.onElapsed(elapse));

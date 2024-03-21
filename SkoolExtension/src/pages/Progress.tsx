@@ -17,7 +17,7 @@ function Progress() {
     const [totalCount, setTotalCount] = useState(0);
     const [textContent, setTextContent] = useState('-');
     const [logs, setLogs] = useState<{id: number, name: string}[]>([]);
-    const isFinished = ()=> (currentCount === totalCount && totalCount > 0);
+    const hasLogs = ()=> (currentCount > 0);
     const [isRunningMode, setIsRunningMode] = useState<boolean>();
 
 
@@ -30,7 +30,7 @@ function Progress() {
 
 
     useEffect(() => {
-        if(isFinished()){
+        if(currentCount === totalCount && currentCount > 0){
             localStorage.setItem("completed", "true");
             sendToContentScript({
                 type: 'finished-event'
@@ -64,7 +64,7 @@ function Progress() {
             });
         }
         if(changes.clockData) {
-            const {counting} = changes.clockData.newValue;
+            const {counting} = changes.clockData?.newValue;
             setIsRunningMode(counting);
         }
     });
@@ -87,10 +87,20 @@ function Progress() {
         a.download = 'skool-logs.csv';
         a.click();
         // clear the storage after download
-        await skoolStorage.clearProcessedRecords();
-        setLogs([])
-        localStorage.removeItem('clockStopped');
-        localStorage.removeItem('completed');
+        if(currentCount === totalCount) {
+            await skoolStorage.clearProcessedRecords();
+            setLogs([])
+            localStorage.removeItem('clockStopped');
+            localStorage.removeItem('completed');
+            await sendToContentScript({
+                type: 'clearLogs'
+            })
+            // Refresh the page
+            await chrome.runtime.sendMessage({
+                type:'refresh'
+            })
+        }
+
 
     }
 
@@ -106,10 +116,10 @@ function Progress() {
                     currentCount={currentCount || 0}
                     totalCount={totalCount || 0}
                     textContent={textContent || '-'}/>
-                {!isFinished() && (
+                {!hasLogs() && (
                     <WarningLabel/>
                     )}
-                {isFinished() && (
+                {hasLogs() && (
                     <CompletedLabel onDownloadLogs={downloadLogs} currentCount={currentCount || 0} totalCount={totalCount || 0} />
                 )}
 
@@ -178,20 +188,27 @@ const CompletedLabel = (props: CompletedLabelProps) => {
     const {currentCount, totalCount} = props;
     return (
         <>
-            <div className="progress-stats">
-                <span>{currentCount}/{totalCount}</span>
+            {currentCount === totalCount && (
+                <div className="progress-stats">
+                    <span>{currentCount}/{totalCount}</span>
 
-                <div className="message">
-                    Messages sent successfully!
+                    <div className="message">
+                        Messages sent successfully!
+                    </div>
+
                 </div>
+            )}
 
-            </div>
-            <button onClick={async(e) => {
-                if(props.onDownloadLogs){
+            <button onClick={async (e) => {
+                if (props.onDownloadLogs) {
                     await props.onDownloadLogs();
-                    screenState.actions.setSettings({
-                        currentScreen: whichScreen.SETTINGS
-                    })
+                    if(currentCount === totalCount) {
+                        screenState.actions.setSettings({
+                            currentScreen: whichScreen.SETTINGS
+                        })
+                    }
+
+
 
                 }
 

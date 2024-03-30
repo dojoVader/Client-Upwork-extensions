@@ -21,6 +21,30 @@ export const Sidebar = () => {
 
     }
 
+    chrome.storage.local.get(['progressEvent'], (result) => {
+        if(result.progressEvent){
+            const {currentCount, totalCount} = result.progressEvent;
+            if(currentCount === totalCount){
+                actions.setSettings({
+                    currentScreen: screen.PROGRESS
+                });
+            }
+        }
+    });
+
+
+    chrome.storage.local.get('clockData', (result) => {
+        if(result.clockData && result.clockData.counting !== undefined) {
+            const {counting} = result.clockData;
+            if(counting){
+                actions.setSettings({
+                    currentScreen: screen.PROGRESS
+                });
+            }
+        }
+
+    });
+
 
 
     return (

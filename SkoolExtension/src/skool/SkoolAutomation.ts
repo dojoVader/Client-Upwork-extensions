@@ -3,7 +3,7 @@ import {SkoolStorage} from "./SkoolStorage";
 import {useProgressStore} from "../zustand/store.progress";
 
 const TOTAL_PAGES_DOM_ELEMENT = "div.styled__DesktopPaginationMeta-sc-4zz1jl-2 ";
-const MEMBERSHIP_DOM = "div.styled__MembersListWrapper-sc-ne2uns-0";
+const MEMBERSHIP_DOM = "svg[viewBox='0 0 512 512']";
 const BUTTON_WRAPPER = "div.styled__ButtonWrapper-sc-qwyv4g-4";
 const MODAL_MEMBER = "div.skool-ui-base-modal";
 const TEXT_AREA = "textarea.styled__MultiLineInput-sc-1k6d9cc-2";
@@ -50,11 +50,7 @@ export class SkoolAutomation {
     constructor() {
         // Get the message from the chrome SkoolStorage
 
-        const skoolStorage = new SkoolStorage();
-        skoolStorage.getPopupData().then((data) => {
-            this.setMessage(data.message);
-            this.setMaximumMessagesPerHour(data.messagePerHour);
-        });
+
 
         // create storage for current members
         localStorage.setItem("currentMembers", JSON.stringify([]));
@@ -62,6 +58,7 @@ export class SkoolAutomation {
     }
 
     setMaximumMessagesPerHour(maximumMessagesPerHour: number) {
+        if(maximumMessagesPerHour === 0) return;
         this.maximumMessagesPerHour = maximumMessagesPerHour;
     }
 
@@ -105,14 +102,17 @@ export class SkoolAutomation {
         this.itemsPerPage = itemsPerPage;
     }
 
+
+
     findMembers() {
-        const domNodes = q(MEMBERSHIP_DOM, false);
+        const domNodes : NodeList = q(MEMBERSHIP_DOM, true);
         // Assign the childNodes to the property
-        if (domNodes) {
+        if (domNodes.length) {
             if (this.currentMembersToSpam.length === 0) {
-                this.currentMembersToSpam = (domNodes.childNodes);
+                this.currentMembersToSpam = Array.of(...domNodes.item(0).parentNode.parentNode.
+                    parentNode.parentNode.parentNode.parentNode.parentNode.childNodes) as HTMLElement[];
             } else {
-                this.currentMembersToSpam.push(...domNodes.childNodes);
+                this.currentMembersToSpam.push(...domNodes.item(0).parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.childNodes as any);
             }
 
             this.setItemsPerPage(this.currentMembersToSpam.length);
@@ -420,6 +420,13 @@ export class SkoolAutomation {
                     textContent: "-"
                 }
             }).then();
+
+            const skoolStorage = new SkoolStorage();
+            skoolStorage.getPopupData().then((data) => {
+                if(data === null) return;
+                this.setMessage(data.message);
+                this.setMaximumMessagesPerHour(data.messagePerHour);
+            });
 
         }
 

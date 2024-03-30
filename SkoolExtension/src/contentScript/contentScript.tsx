@@ -4,6 +4,7 @@ import {createRoot} from "react-dom/client";
 import {SkoolAutomation, SkoolMemberEntity} from "../skool/SkoolAutomation";
 import {QueueMap} from "../skool/Queue";
 import {Scheduler} from "../skool/Scheduler";
+import {PopupData} from "../skool/SkoolStorage";
 
 
 declare var window;
@@ -20,6 +21,24 @@ console.log("Now fired in the School Extension....");
 
 // Initiate the SkoolAutomator to find the elements in the page
 const automator = new SkoolAutomation();
+
+chrome.storage.local.get(['popupData'], (result) => {
+    if(!result.popupData) {
+        return;
+    }
+    const data = result.popupData as PopupData;
+    automator.setMessage(data.message);
+    automator.setMaximumMessagesPerHour(data.messagePerHour);
+    console.log('Config Set to ContentScript')
+});
+
+chrome.storage.local.onChanged.addListener((changes) => {
+  if(changes.popupData) {
+    const {message, messagePerHour} = changes.popupData.newValue;
+    automator.setMessage(message);
+    automator.setMaximumMessagesPerHour(messagePerHour);
+  }
+})
 
 
 setTimeout(async () => {
@@ -58,6 +77,17 @@ setTimeout(async () => {
 
     scheduler.onAnimationEnd(() => {
         //Get the members
+
+        chrome.storage.local.get(['clockData'], (result) => {
+            if(result.clockData){
+                chrome.storage.local.set({
+                    'clockData': {
+                        ...result['clockData'],
+                        schedule:false
+                    }
+                })
+            }
+        });
 
         clear();
         automator.findPaginationInfo();
@@ -126,7 +156,7 @@ setTimeout(async () => {
                                 })
                                 automator.save();
                                 automator.clear(true)
-                                chrome.storage.local.remove(['progressEvent', 'clockData']).then();
+                                chrome.storage.local.remove(['clockData']).then();
                             }
 
                         }
@@ -164,8 +194,9 @@ setTimeout(async () => {
         }else if (request.type === "finished-event") {
             automator.clear();
             automator.resetCount();
+            localStorage.removeItem('currentQueueMembers'); // Fixed bug
             // clear progessEvent from chrome.storage.local
-            chrome.storage.local.remove(['progressEvent']).then();
+            // chrome.storage.local.remove(['progressEvent']).then();
         }
         else if (request.type === "clearLogs") {
             // clear the logs from the storage

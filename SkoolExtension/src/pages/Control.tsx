@@ -6,9 +6,10 @@ import {screen, useSettingsStore} from "../zustand/store.settings";
 function Control() {
     const screenState = useSettingsStore(state => state);
 
+
     return (
         <div>
-            <Header triggerClock={false}  hideClock={true}/>
+            <Header hideClock={true}/>
             <ControlPageBody />
 
         </div>

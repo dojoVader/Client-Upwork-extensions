@@ -17,6 +17,9 @@ function ControlPageBody() {
     // Load from storage
     useEffect(() => {
         chrome.storage.local.get(['popupData'], (result) => {
+            if(!result.popupData) {
+                return;
+            }
             const data = result.popupData as PopupData;
             setTextarea(data.message);
             setMessagePerHour(data.messagePerHour);
@@ -26,15 +29,22 @@ function ControlPageBody() {
 
     chrome.storage.local.onChanged.addListener((changes) => {
         if(changes.clockData) {
+            if(changes.clockData.newValue && changes.clockData.newValue.counting !== undefined) {
             const {counting} = changes.clockData.newValue;
             setIsRunningMode(counting);
+            }
+
         }
     });
 
     useEffect(() => {
         chrome.storage.local.get('clockData', (result) => {
+            if(result.clockData && result.clockData.counting !== undefined) {
             const {counting} = result.clockData;
-            setIsRunningMode(counting);
+
+                setIsRunningMode(counting);
+            }
+
         });
     }, []);
 
@@ -43,6 +53,7 @@ function ControlPageBody() {
     // Save to storage
     useEffect(() => {
         // Save to storage
+        if(messagePerHour === 0 && textarea.length <= 0) return; // Fixed bug
         const data: PopupData = {
             message: textarea,
             messagePerHour
@@ -80,7 +91,7 @@ function ControlPageBody() {
                 </div>
                 <div className="control-option">
                     <div className="option-item">
-                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>10 messages / hr</span>
+                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>2 messages / hr</span>
                     </div>
                 </div>
 
@@ -97,6 +108,17 @@ function ControlPageBody() {
                             data: {
                                 title: "Teachers Aid",
                                 message: "Please enter a message"
+                            }
+                        }).then();
+                        return;
+                    }
+
+                    if(messagePerHour <= 0) {
+                        chrome.runtime.sendMessage({
+                            type: 'notification',
+                            data: {
+                                title: "Teachers Aid",
+                                message: "Please select the number of messages per hour"
                             }
                         }).then();
                         return;

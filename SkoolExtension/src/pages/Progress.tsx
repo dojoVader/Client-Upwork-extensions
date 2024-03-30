@@ -5,7 +5,7 @@ import {CircularProgressBar} from "../component/shared/CircularProgressBar";
 import {useTickStore} from "../zustand/store.tick";
 import {useSettingsStore, screen as whichScreen} from "../zustand/store.settings";
 import {SkoolStorage} from "../skool/SkoolStorage";
-import {sendToContentScript} from "../utils/chrome-utils";
+import {sendToContentScript, sendToSkool} from "../utils/chrome-utils";
 
 const skoolStorage = new SkoolStorage();
 
@@ -23,8 +23,11 @@ function Progress() {
 
     useEffect(() => {
         chrome.storage.local.get('clockData', (result) => {
+            if(result.clockData && result.clockData.counting !== undefined) {
             const {counting} = result.clockData;
             setIsRunningMode(counting);
+            }
+
         });
     }, []);
 
@@ -54,13 +57,19 @@ function Progress() {
     chrome.storage.local.onChanged.addListener((changes) => {
         if(changes.progressEvent){
             const {currentCount, totalCount, textContent} = changes.progressEvent.newValue;
-            setCurrentCount(currentCount);
-            setTotalCount(totalCount);
-            setTextContent(textContent);
+            if(changes.progressEvent?.newValue?.currentCount){
+                setCurrentCount(currentCount);
+                setTotalCount(totalCount);
+                setTextContent(textContent);
+            }
+
 
             chrome.storage.local.get('clockData', (result) => {
-                const {counting} = result.clockData;
-                setIsRunningMode(counting);
+                if(result.clockData && result.clockData.counting !== undefined) {
+                    const {counting} = result.clockData;
+                    setIsRunningMode(counting);
+                }
+
             });
         }
         if(changes.clockData) {
@@ -92,7 +101,8 @@ function Progress() {
             setLogs([])
             localStorage.removeItem('clockStopped');
             localStorage.removeItem('completed');
-            await sendToContentScript({
+            await chrome.storage.local.remove('progressEvent')
+            await sendToSkool({
                 type: 'clearLogs'
             })
             // Refresh the page
@@ -128,7 +138,7 @@ function Progress() {
             <div className="button-cage">
                 <button className={isRunningMode ? 'red-scheme' : ''} onClick={async(e) => {
                     if(isRunningMode) {
-                        await sendToContentScript({
+                        await sendToSkool({
                             type: 'stopClock'
                         })
                         setIsRunningMode(false);
@@ -136,7 +146,7 @@ function Progress() {
                     }
 
                     if(!isRunningMode) {
-                        await sendToContentScript({
+                        await sendToSkool({
                             type: 'blastOff'
                         })
                         setIsRunningMode(true)
@@ -199,7 +209,7 @@ const CompletedLabel = (props: CompletedLabelProps) => {
                 </div>
             )}
 
-            <button onClick={async (e) => {
+            <button disabled={currentCount < totalCount} onClick={async (e) => {
                 if (props.onDownloadLogs) {
                     await props.onDownloadLogs();
                     if(currentCount === totalCount) {

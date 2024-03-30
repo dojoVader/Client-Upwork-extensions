@@ -15,6 +15,8 @@ export function isContentScript(): boolean {
     return !chrome.hasOwnProperty('tabs');
 }
 
+
+
 export async function sendToSkool(data: MessageType) {
 
     const tabs = await chrome.tabs.query({
@@ -23,9 +25,10 @@ export async function sendToSkool(data: MessageType) {
         currentWindow: true,
     });
     const [tab] = tabs;
+    console.log("what is tab %o", tab);
 
 
-    if (tabs.length <= 0) {
+    if (!tab) {
         try{
             const pingResponse = await chrome.tabs.sendMessage(tab?.id, {type: 'ping'});
             if (pingResponse.message === 'pong') {
@@ -48,6 +51,7 @@ export async function sendToSkool(data: MessageType) {
         try {
             const [tab] = tabs;
             const pingResponse = await chrome.tabs.sendMessage(tab?.id, {type: 'ping'});
+            console.log(pingResponse);
             if (pingResponse.message === 'pong') {
                 await chrome.tabs.sendMessage(tab?.id, data, (response: any) => {
                     console.log(response)
@@ -64,11 +68,12 @@ export async function sendToSkool(data: MessageType) {
 }
 
 async function injectScript(tab: Tab, data: MessageType) {
+    console.log("what is tab %o", tab);
     await chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files: ['contentScript.js'],
     }, () => {
-        alert("ContentScript was not injected, please click ok to re-initiate the process")
+        alert("Code has been injected, click ok to start the process")
         setTimeout(() => {
             // send a content message to the contentscript
             chrome.tabs.sendMessage(tab.id, data, (response: any) => {
@@ -85,12 +90,14 @@ export async function sendToContentScript(data: MessageType) {
         lastFocusedWindow: true,
         currentWindow: true,
     });
-    if (tab?.id) {
+    if (tab) {
         await chrome.tabs.sendMessage(tab.id, data, (response: any) =>
             console.log(response)
         );
     } else {
-        console.log('CHECK AGAIN');
+        const fetchTabs = await chrome.tabs.query({});
+        const skoolTab: Tab | undefined = fetchTabs.find((tab: Tab) => tab.url?.includes('skool'));
+        await chrome.tabs.sendMessage(skoolTab.id,data);
     }
 }
 

@@ -14,9 +14,10 @@ interface HeaderProps {
 
 function Header(props: HeaderProps) {
     const {triggerClock: clockTicked, disableHome, hideClock} = props;
-    const [isScheduleRunning, setIsScheduleRunning] = useState();
+    const [isScheduleRunning, setIsScheduleRunning] = useState(null);
     const [isWatchRunning, setIsWatchRunning] = useState();
     const [timer, setTimer] = useState("");
+    const [status, setStatus] = useState("sending");
 
     const convertToTime = (time: number) => {
         const hours = Math.floor(time / 3600);
@@ -60,15 +61,19 @@ function Header(props: HeaderProps) {
     }, [timer])
 
 
+
+
     useEffect(() => {
         chrome.storage.local.onChanged.addListener(callback);
+        return () => {
+            chrome.storage.local.onChanged.removeListener(callback)
+        }
     }, []);
 
 
     // write a function to convert time to minute, seconds and hour
 
 
-    console.log(timer);
     let logoWidth = "98px";
     let logoHeight = "14px";
 
@@ -94,9 +99,9 @@ function Header(props: HeaderProps) {
                 )}
 
 
-                {!isScheduleRunning && (
+                {!isScheduleRunning  && (
                     <span className={'clock'}>
-                        {isWatchRunning ? 'sending' : ' '}
+                        {isWatchRunning ? 'sending' : '' }
                     </span>
                 )}
 
@@ -112,11 +117,12 @@ type TimeProps = {
 }
 const Timer = (props: TimeProps) => {
     const {time} = props;
+    const memoizedTimer = useMemo(() => time,[time])
 
 
     return (
         <span className={'clock'}>
-                        {time}
+                        {memoizedTimer}
                     </span>
     )
 }

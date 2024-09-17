@@ -91,7 +91,7 @@ function ControlPageBody() {
                 </div>
                 <div className="control-option">
                     <div className="option-item">
-                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>2 messages / hr</span>
+                        <input name={'messagePerHour'} checked={messagePerHour === 10} onClick={() => setMessagePerHour(10)} type="radio"/> <span>10 messages / hr</span>
                     </div>
                 </div>
 
